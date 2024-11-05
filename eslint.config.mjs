@@ -20,6 +20,9 @@ const compat = new FlatCompat({
 /** @type {import('eslint').Linter.Config[]} */
 export default [
   { files: ["**/*.{js,mjs,cjs,ts}"] },
+  {
+    ignores: ["*.config.js"]
+  },
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,
   ...compat.extends("airbnb-base"),
