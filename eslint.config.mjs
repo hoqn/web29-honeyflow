@@ -34,7 +34,7 @@ export default [
             "**/storybook/**",
             "**/stories/**",
             "**/*.stories.{ts,tsx,js,jsx}",
-            "**/*.{spec,test},{ts,tsx,js,jsx}",
+            "**/*.{spec,test}.{ts,tsx,js,jsx}",
           ],
         },
       ],
