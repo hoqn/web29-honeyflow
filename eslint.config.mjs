@@ -1,9 +1,8 @@
 /* eslint-disable no-underscore-dangle */
 import pluginJs from "@eslint/js";
-// eslint-disable-next-line import/no-unresolved
-import tseslint from "typescript-eslint";
 import prettierConfig from "eslint-config-prettier";
 import prettierPluginRecommended from "eslint-plugin-prettier/recommended";
+import tseslint from "@typescript-eslint/eslint-plugin";
 
 /** @see https://www.raulmelo.me/en/blog/migration-eslint-to-flat-config */
 import { FlatCompat } from "@eslint/eslintrc";
@@ -20,12 +19,25 @@ const compat = new FlatCompat({
 /** @type {import('eslint').Linter.Config[]} */
 export default [
   { files: ["**/*.{js,mjs,cjs,ts}"] },
-  {
-    ignores: ["*.config.js"]
-  },
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,
   ...compat.extends("airbnb-base"),
   prettierConfig,
   prettierPluginRecommended,
+  {
+    rules: {
+      "import/no-extraneous-dependencies": [
+        "warn",
+        {
+          devDependencies: [
+            "**/*.config.{mts,ts,mjs,js}",
+            "**/storybook/**",
+            "**/stories/**",
+            "**/*.stories.{ts,tsx,js,jsx}",
+            "**/*.{spec,test},{ts,tsx,js,jsx}",
+          ],
+        },
+      ],
+    },
+  },
 ];
