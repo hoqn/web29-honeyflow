@@ -2,7 +2,7 @@
 import pluginJs from "@eslint/js";
 import prettierConfig from "eslint-config-prettier";
 import prettierPluginRecommended from "eslint-plugin-prettier/recommended";
-import tseslint from "@typescript-eslint/eslint-plugin";
+import tseslint from "typescript-eslint";
 
 /** @see https://www.raulmelo.me/en/blog/migration-eslint-to-flat-config */
 import { FlatCompat } from "@eslint/eslintrc";
