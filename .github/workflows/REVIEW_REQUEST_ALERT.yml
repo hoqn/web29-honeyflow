@@ -1,15 +1,22 @@
-name: Review Request Alert Slack Bot
+name: BeeBot
 on:
   pull_request:
-    types: [review_requested]
-
+    types: [review_request_removed]
 jobs:
-  specific_review_requested:
+  notify_automatically_assigned_review_request:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
-      - name: Get Reviewers List
+      - name: 알림 전송 이력이 있는지 확인
+        id: check_notification
+        uses: actions/cache@v3
+        with:
+          path: .notifications
+          key: notifications-${{ github.event.pull_request.number }}
+
+      - name: 리뷰어 목록 가져오기
+        if: steps.check_notification.outputs.cache-hit != 'true'
         id: reviewers
         uses: actions/github-script@v6
         with:
@@ -24,13 +31,14 @@ jobs:
             return mention.join(', ');
           result-encoding: string
 
-      - name: pr reviewer 되면 slack 알림 보냄
+      - name: 슬랙 알림 전송
+        if: steps.check_notification.outputs.cache-hit != 'true'
         uses: slackapi/slack-github-action@v1.24.0
         with:
           channel-id: ${{ secrets.SLACK_CHANNEL }}
           payload: |
             {
-              "text": "pr review request",
+              "text": "[리뷰 요청] 새로운 PR이 등록되었습니다!",
               "blocks": [
                 {
                   "type": "section",
@@ -43,3 +51,9 @@ jobs:
             }
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+      - name: 알림 전송 이력 생성
+        if: steps.check_notification.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p .notifications
+          touch .notifications/sent
