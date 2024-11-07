@@ -1,0 +1,154 @@
+name: 프론트엔드 배포
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/frontend/**"
+      - "packages/shared/**"
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v3
+
+      - name: PNPM 설정
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.4.0
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v3
+        with:
+          node-version: "22.9.0"
+          cache: "pnpm"
+
+      - name: 의존성 설치
+        id: install
+        run: pnpm install
+        continue-on-error: true
+
+      - name: Shared 패키지 빌드
+        id: build-shared
+        if: steps.install.outcome == 'success'
+        working-directory: packages/shared
+        run: pnpm build
+        continue-on-error: true
+
+      - name: Frontend 패키지 빌드
+        id: build-frontend
+        if: steps.build-shared.outcome == 'success'
+        working-directory: packages/frontend
+        run: pnpm build
+        continue-on-error: true
+
+      - name: NCP 컨테이너 레지스트리 로그인
+        if: steps.build-frontend.outcome == 'success'
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ secrets.CONTAINER_REGISTRY_URL }}
+          username: ${{ secrets.NCP_ACCESS_KEY }}
+          password: ${{ secrets.NCP_SECERET_KEY }}
+
+      - name: Docker 이미지 빌드 및 푸시
+        id: docker-build
+        if: steps.build-frontend.outcome == 'success'
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: ./packages/frontend/Dockerfile
+          push: true
+          tags: ${{ secrets.CONTAINER_REGISTRY_URL }}/frontend:latest
+
+      - name: 배포 결과 처리
+        if: always()
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const getKSTDate = () => {
+              const date = new Date();
+              date.setHours(date.getHours() + 9); 
+              return date.toISOString();
+            };
+
+            const installOutcome = '${{ steps.install.outcome }}';
+            const sharedOutcome = '${{ steps.build-shared.outcome }}';
+            const frontendOutcome = '${{ steps.build-frontend.outcome }}';
+            const dockerOutcome = '${{ steps.docker-build.outcome }}';
+
+            const getFailedStep = () => {
+              if (installOutcome === 'failure') return '의존성 설치';
+              if (sharedOutcome === 'failure') return 'Shared 패키지 빌드';
+              if (frontendOutcome === 'failure') return 'Frontend 패키지 빌드';
+              if (dockerOutcome === 'failure') return 'Docker 빌드 및 푸시';
+              return '알 수 없음';
+            };
+
+            const finalOutcome = 
+              installOutcome === 'success' && 
+              sharedOutcome === 'success' && 
+              frontendOutcome === 'success' && 
+              dockerOutcome === 'success' 
+                ? 'success' : 'failure';
+
+            try {
+              await github.rest.checks.create({
+                ...context.repo,
+                name: '프론트엔드 배포 상태',
+                head_sha: context.sha,
+                status: 'completed',
+                conclusion: finalOutcome,
+                output: {
+                  title: finalOutcome === 'success' 
+                    ? '🚀 프론트엔드 배포 성공' 
+                    : '❌ 프론트엔드 배포 실패',
+                  summary: finalOutcome === 'success'
+                    ? [
+                        '## ✅ 배포 상태: 성공',
+                        '',
+                        '### 배포 정보:',
+                        '- 📅 **배포 시간**: ' + getKSTDate(),
+                        '- 🌏 **환경**: Production',
+                        '- 📦 **빌드된 패키지**: shared, frontend',
+                        '- 🎯 **대상**: NCP Container Registry',
+                        '',
+                        '### 빌드 단계 결과:',
+                        '- ✅ 의존성 설치: 성공',
+                        '- ✅ Shared 패키지 빌드: 성공',
+                        '- ✅ Frontend 패키지 빌드: 성공',
+                        '- ✅ Docker 이미지 빌드 및 푸시: 성공',
+                        '',
+                        '🎉 프로덕션 환경에 성공적으로 배포되었습니다!'
+                      ].join('\n')
+                    : [
+                        '## ❌ 배포 상태: 실패',
+                        '',
+                        '### 오류 정보:',
+                        '- 📅 **실패 시간**: ' + getKSTDate(),
+                        '- 🚨 **실패 단계**: ' + getFailedStep(),
+                        '',
+                        '### 빌드 단계 결과:',
+                        `- ${installOutcome === 'success' ? '✅' : '❌'} 의존성 설치: ${installOutcome}`,
+                        `- ${sharedOutcome === 'success' ? '✅' : '❌'} Shared 패키지 빌드: ${sharedOutcome}`,
+                        `- ${frontendOutcome === 'success' ? '✅' : '❌'} Frontend 패키지 빌드: ${frontendOutcome}`,
+                        `- ${dockerOutcome === 'success' ? '✅' : '❌'} Docker 이미지 빌드 및 푸시: ${dockerOutcome}`,
+                        '',
+                        '### 문제 해결 방법:',
+                        '1. 실패한 단계의 로그를 확인해주세요',
+                        '2. 의존성 및 빌드 스크립트를 확인해주세요',
+                        '3. 환경 변수 설정을 확인해주세요',
+                        '',
+                      ].join('\n')
+                }
+              });
+            } catch (error) {
+              console.error('Error creating check:', error);
+              core.setFailed(`Check creation failed: ${error.message}`);
+            }
