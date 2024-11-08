@@ -1,3 +1,45 @@
+## 🐝 HoneyFlow 서비스 소개
+
+<div align="center">
+
+<img width="894" alt="HoneyFlowIntro" src="https://github.com/user-attachments/assets/f4602545-e068-448e-beb3-d276d9ecc360">
+
+<b>" Think Linked, Map Together "</b>
+
+
+그동안 야생에서 해왔던 학습 정리, 어렵지 않으셨나요? 😣
+
+내용의 "구조화"가 이루어지지 않았기 때문입니다. HoneyFlow가 해결합니다.
+
+|🔗 링크|[📜 노션](https://psychedelic-pumpkin-26b.notion.site/HoneyFlow-12a9594041ea80fc9ae3d4cff0b6cc3a)|[🎨 피그마](https://www.figma.com/design/Uewm0B9ooTzIyN1pY9ZFVl/HoneyFlow-UI?t=rGVV4Pe2usnsTZUp-1)|[📚 Wiki](https://github.com/boostcampwm-2024/web29-honeyflow/wiki)|
+|:-:|:-:|:-:|:--:|
+
+</div>
+ 
+<br/>   
+<br/>   
+
+## 🐝 디렉토리 구조
+
+```
+📂 web29-honeyflow/
+├── 📂 packages/            모노레포의 패키지들이 위치
+│   ├── 📂 backend/         백엔드 관련 패키지
+│   │   ├── 📂 src/
+│   │   ├── 📄 package.json
+│   │   └── 📄 tsconfig.json
+│   ├── 📂 frontend/        프론트엔드 관련 패키지
+│   │   ├── 📂 src/
+│   │   ├── 📄 package.json
+│   │   └── 📄 tsconfig.json
+│   └── 📂 shared/          프론트엔드와 백엔드에서 공용으로 사용하는 패키지
+├── 📄 eslint.config.mjs
+├── 📄 pnpm-lock.yaml
+├── 📄 package.json
+└── 📄 tsconfig.json
+```
+
+
 ## 🐝 팀 소개 
 
 ### 우리팀은 BUZZZZZ...✨입니다 
@@ -8,31 +50,6 @@
 |![enter image description here](https://avatars.githubusercontent.com/u/127650598?v=4)|![enter image description here](https://avatars.githubusercontent.com/u/105726712?v=4)|![enter image description here](https://avatars.githubusercontent.com/u/157210807?v=4)|![enter image description here](https://avatars.githubusercontent.com/u/62245207?v=4)|![enter image description here](https://avatars.githubusercontent.com/u/4702412?v=4)|
 | BE | FE | FE | FE | FE 
 | [@fru1tworld](https://github.com/fru1tworld) |[@heegenie](https://github.com/heegenie)|[@CatyJazzy](https://github.com/CatyJazzy) |[@parkblo](https://github.com/parkblo) |[@hoqn](https://github.com/parkblo) |
-
-  
- <br/>  
- 
-### 그라운드룰
-
-- [> 보러가기](https://github.com/boostcampwm-2024/web29-honeyflow/wiki/%EA%B7%B8%EB%9D%BC%EC%9A%B4%EB%93%9C%EB%A3%B0)
-
-<br/>   
-  
-## 🐝 HoneyFlow 서비스 소개
-
-### " Think Linked, Map Together "
-
-> 그동안 야생에서 해왔던 학습 정리, 어렵지 않으셨나요?  
-> 내용의 "구조화"가 이루어지지 않았기 때문입니다. HoneyFlow가 해결합니다.
-<img width="894" alt="HoneyFlowIntro" src="https://github.com/user-attachments/assets/f4602545-e068-448e-beb3-d276d9ecc360">
-
-  
- 
-<br/>   
-<br/>   
-
-## 🐝 More Info
-- [> 팀 노션 스페이스](https://psychedelic-pumpkin-26b.notion.site/HoneyFlow-12a9594041ea80fc9ae3d4cff0b6cc3a?pvs=4)
 
 
  
