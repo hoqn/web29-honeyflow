@@ -22,23 +22,15 @@ jobs:
           username: ${{ secrets.NCP_ACCESS_KEY }}
           password: ${{ secrets.NCP_SECRET_KEY }}
 
-      - name: 도커 이미지 빌드 및 푸시 (Blue)
-        id: docker-build-blue
+      - name: 도커 이미지 빌드 및 푸시
+        id: docker-build
         uses: docker/build-push-action@v3
         with:
           context: .
           file: ./packages/backend/Dockerfile.blue
           push: true
-          tags: ${{ secrets.CONTAINER_REGISTRY_URL }}/backend:blue-latest
+          tags: ${{ secrets.CONTAINER_REGISTRY_URL }}/backend:latest
 
-      - name: 도커 이미지 빌드 및 푸시 (Green)
-        id: docker-build-green
-        uses: docker/build-push-action@v3
-        with:
-          context: .
-          file: ./packages/backend/Dockerfile.green
-          push: true
-          tags: ${{ secrets.CONTAINER_REGISTRY_URL }}/backend:green-latest
 
   pull_from_registry:
     runs-on: ubuntu-latest
@@ -56,25 +48,9 @@ jobs:
         run: |
           docker login -u ${{ secrets.NCP_ACCESS_KEY }} -p ${{ secrets.NCP_SECRET_KEY }} ${{ secrets.CONTAINER_REGISTRY_URL }}
 
-      - name: 현재 실행 중인 Blue/Green 확인
-        id: check-current
+      - name: 컨테이너 업데이트
         run: |
-          if docker ps --filter "name=backend_green" --format '{{.Names}}' | grep -w backend_green; then
-           echo "current=green" | tee -a $GITHUB_ENV
-          else
-           echo "current=blue" | tee -a $GITHUB_ENV
-          fi
-
-      - name: 컨테이너 업데이트 및 Blue/Green 전환
-        run: |
-          if [ "$current" = "green" ]; then
-            docker stop backend_green || true
-            docker rm backend_green || true
-            docker pull ${{ secrets.CONTAINER_REGISTRY_URL }}/backend:blue-latest
-            docker run -d --name backend_blue --network product_network -p 3000:3000 ${{ secrets.CONTAINER_REGISTRY_URL }}/backend:blue-latest
-          else
-            docker stop backend_blue || true
-            docker rm backend_blue || true
-            docker pull ${{ secrets.CONTAINER_REGISTRY_URL }}/backend:green-latest
-            docker run -d --name backend_blue --network product_network -p 3001:3000 ${{ secrets.CONTAINER_REGISTRY_URL }}/backend:blue-latest
-          fi
+            docker stop backend
+            docker rm backend
+            docker pull ${{ secrets.CONTAINER_REGISTRY_URL }}/backend:latest
+            docker run -d --name backend_blue --network product_network -p 3000:3000 ${{ secrets.CONTAINER_REGISTRY_URL }}/backend:latest
