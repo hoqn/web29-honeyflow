@@ -5,26 +5,25 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # 필요한 빌드 도구 설치
-RUN apk add --no-cache python3 make g++ \
-    && npm install -g pnpm
+RUN apk add --no-cache python3 make g++ && npm install -g pnpm
 
 # 루트 레벨의 패키지 파일들 복사
 COPY package.json pnpm-workspace.yaml ./
 
 # packages의 package.json 파일들 복사
-COPY packages/backend/package.json ./packages/backend/
-COPY packages/shared/package.json ./packages/shared/
+COPY ./packages/backend/package.json ./packages/backend/
+COPY ./packages/shared/package.json ./packages/shared/
 
 # 의존성 설치 (husky 설치 건너뛰기)
 RUN HUSKY=0 pnpm install --no-frozen-lockfile
 
 # 소스 코드 복사
-COPY packages/backend ./packages/backend
-COPY packages/shared ./packages/shared
-COPY tsconfig.json ./
+COPY ./packages/backend ./packages/backend
+COPY ./packages/shared ./packages/shared
+COPY ./tsconfig.json ./
 
 # 백엔드 빌드
-RUN cd packages/backend && pnpm build
+RUN cd ./packages/backend && pnpm build
 
 # 프로덕션 스테이지
 FROM node:20-alpine AS production
@@ -55,7 +54,7 @@ WORKDIR /app/packages/backend
 ENV NODE_ENV=production
 
 # 포트 설정
-EXPOSE 3001
+EXPOSE 3000
 
 # 애플리케이션 실행
-CMD ["node", "dist/src/main"]
+CMD ["node", "dist/main"]
