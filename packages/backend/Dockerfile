@@ -23,7 +23,7 @@ COPY ./packages/shared ./packages/shared
 COPY ./tsconfig.json ./
 
 # 백엔드 빌드
-RUN cd packages/backend && pnpm build
+RUN cd ./packages/backend && pnpm build
 
 # 프로덕션 스테이지
 FROM node:20-alpine AS production
@@ -57,4 +57,4 @@ ENV NODE_ENV=production
 EXPOSE 3000
 
 # 애플리케이션 실행
-CMD ["node", "dist/src/main"]
+CMD ["node", "dist/main"]
