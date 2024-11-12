@@ -11,8 +11,8 @@ RUN apk add --no-cache python3 make g++ && npm install -g pnpm
 COPY package.json pnpm-workspace.yaml ./
 
 # packages의 package.json 파일들 복사
-COPY ./packages/backend/package.json ./packages/backend/
-COPY ./packages/shared/package.json ./packages/shared/
+COPY ./packages/backend ./packages/backend/
+COPY ./packages/shared ./packages/shared/
 
 # 의존성 설치 (husky 설치 건너뛰기)
 RUN HUSKY=0 pnpm install --no-frozen-lockfile
