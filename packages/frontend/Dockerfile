@@ -3,12 +3,10 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 RUN apk add --no-cache python3 make g++ && npm install -g pnpm
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
-COPY ./packages/frontend/nginx.conf ./packages/frontend/
 COPY ./tsconfig.json ./
-COPY ./packages/shared/package.json ./packages/shared/
-COPY ./packages/shared/tsconfig.json ./packages/shared/
-COPY ./packages/frontend/tsconfig*.json ./packages/frontend/
-COPY ./packages/frontend/package.json ./packages/frontend/
+COPY ./packages/shared/ ./packages/shared/
+COPY ./packages/frontend/ ./packages/frontend/
+
 RUN HUSKY=0 pnpm install --no-frozen-lockfile
 COPY ./packages/frontend/src ./packages/frontend/src
 COPY ./packages/frontend/public ./packages/frontend/public
