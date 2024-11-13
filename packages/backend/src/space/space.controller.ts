@@ -27,8 +27,8 @@ export class SpaceController {
       return res.status(400).json({ message: '필요한 정보가 누락되었습니다.' });
     }
 
-    const spaceId = await this.SpaceService.create(userId, spaceName);
-    return res.status(201).json({ spaceId });
+    const space = await this.SpaceService.create(userId, spaceName);
+    return res.status(201).json({ spaceId: space.spaceId });
   }
 
   @Get('v1/:spaceId')
