@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { SpaceModule } from './space/space.module';
-import { ChaceModule } from './chace/chace.module';
 import { ContentModule } from './content/content.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -27,7 +26,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       }),
     }),
     SpaceModule,
-    ChaceModule,
     ContentModule,
   ],
   controllers: [AppController],

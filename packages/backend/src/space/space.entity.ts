@@ -6,6 +6,12 @@ export class Space {
   id: number;
 
   @Column()
+  userId: string;
+
+  @Column()
+  spaceId: string;
+
+  @Column()
   name: string;
 
   @Column({ type: 'text' })

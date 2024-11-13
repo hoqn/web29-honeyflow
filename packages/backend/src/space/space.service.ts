@@ -17,26 +17,25 @@ export class SpaceService {
     return uuidv4();
   }
 
-  async create(spacename: string): Promise<Space> {
+  async create(userId: string, spaceName: string) {
     const Edges: Edge[] = [];
     const Nodes: Node[] = [];
-    return await this.spaceRepository.save({
-      name: spacename,
+
+    const spaceId = this.generateUuid();
+    const result = await this.spaceRepository.save({
+      userId: userId,
+      spaceId: spaceId,
+      name: spaceName,
       edges: JSON.stringify(Edges),
       nodes: JSON.stringify(Nodes),
     });
+    return result;
   }
 
-  async findAll(): Promise<Space[]> {
-    return await this.spaceRepository.find();
-  }
-
-  async delete(spacename: string) {
-    const space = await this.spaceRepository.findOne({
-      where: { name: spacename },
+  async findById(spaceId: string) {
+    const result = await this.spaceRepository.findOne({
+      where: { spaceId },
     });
-    if (space) {
-      await this.spaceRepository.remove(space);
-    }
+    return result;
   }
 }
