@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { SpaceModule } from './space/space.module';
-import { ChaceModule } from './chace/chace.module';
 import { ContentModule } from './content/content.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -23,11 +22,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         password: configService.get<string>('MYSQL_PASSWORD'),
         database: configService.get<string>('MYSQL_DATABASE'),
         entities: [__dirname + '/**/*.entity.js'],
+        timezone: '+9:00',
         synchronize: process.env.NODE_ENV !== 'production',
+        autoLoadEntities: true,
       }),
     }),
     SpaceModule,
-    ChaceModule,
     ContentModule,
   ],
   controllers: [AppController],
