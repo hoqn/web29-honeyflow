@@ -31,7 +31,6 @@ jobs:
           push: true
           tags: ${{ secrets.CONTAINER_REGISTRY_URL }}/backend:latest
 
-
   pull_from_registry:
     runs-on: ubuntu-latest
     needs: push_to_registry
@@ -43,14 +42,20 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SERVER_SSH_PORT }}
+          script: |
+            # NCP 컨테이너 레지스트리 로그인
+            docker login -u ${{ secrets.NCP_ACCESS_KEY }} -p ${{ secrets.NCP_SECRET_KEY }} ${{ secrets.CONTAINER_REGISTRY_URL }}
 
-      - name: NCP 컨테이너 레지스트리 로그인
-        run: |
-          docker login -u ${{ secrets.NCP_ACCESS_KEY }} -p ${{ secrets.NCP_SECRET_KEY }} ${{ secrets.CONTAINER_REGISTRY_URL }}
-
-      - name: 컨테이너 업데이트
-        run: |
-            docker stop backend
-            docker rm backend
+            # 새로운 이미지 pull
             docker pull ${{ secrets.CONTAINER_REGISTRY_URL }}/backend:latest
-            docker run -d --name backend_blue --network product_network -p 3000:3000 ${{ secrets.CONTAINER_REGISTRY_URL }}/backend:latest
+
+            # 기존 컨테이너 중지 및 제거
+            docker stop backend || true
+            docker rm backend || true
+
+            # .env 파일 생성
+            echo "${{ secrets.ENV_FILE_CONTENTS }}" > .env
+
+            # 컨테이너 업데이트
+            docker pull ${{ secrets.CONTAINER_REGISTRY_URL }}/backend:latest
+            docker run -d --name backend --network product_network -p 3000:3000 --env-file .env ${{ secrets.CONTAINER_REGISTRY_URL }}/backend:latest

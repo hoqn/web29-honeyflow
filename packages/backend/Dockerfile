@@ -45,7 +45,7 @@ COPY --from=builder /app/packages/backend/dist ./packages/backend/dist
 
 # shared 패키지 소스 복사
 COPY --from=builder /app/packages/shared ./packages/shared
-COPY --from=builder /app/packages/backend/.env ./packages/backend/.env
+
 # 작업 디렉터리를 백엔드로 변경
 WORKDIR /app/packages/backend
 

@@ -59,7 +59,6 @@ jobs:
             # 새 컨테이너 실행
             docker run -d --name frontend --network product_network -p 80:80 ${{ secrets.CONTAINER_REGISTRY_URL }}/frontend:latest
 
-
             # 헬스체크 (선택사항)
             sleep 5
             if ! curl -f http://localhost:80/health; then
