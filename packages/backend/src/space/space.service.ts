@@ -29,7 +29,7 @@ export class SpaceService {
       edges: JSON.stringify(Edges),
       nodes: JSON.stringify(Nodes),
     });
-    return result;
+    return result.spaceId;
   }
 
   async findById(spaceId: string) {

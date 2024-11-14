@@ -19,12 +19,12 @@ export class SpaceController {
   async createSpace(@Body() createSpaceDto: CreateSpaceDto) {
     const { userId, spaceName } = createSpaceDto;
 
-    const space = await this.SpaceService.create(userId, spaceName);
-    if (!space) {
+    const spaceId = await this.SpaceService.create(userId, spaceName);
+    if (!spaceId) {
       throw new HttpException('스페이스 생성 실패', HttpStatus.BAD_REQUEST);
     }
     return {
-      spaceId: space.spaceId,
+      spaceId,
     };
   }
 
