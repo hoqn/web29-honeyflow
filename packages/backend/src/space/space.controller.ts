@@ -29,7 +29,7 @@ export class SpaceController {
   }
 
   @Version('1')
-  @Get('v1/:spaceId')
+  @Get('/:spaceId')
   async getSpace(@Param('spaceId') spaceId: string) {
     const space = await this.SpaceService.findById(spaceId);
     if (!space) {
