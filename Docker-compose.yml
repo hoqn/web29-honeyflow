@@ -1,0 +1,32 @@
+services:
+  web:
+    container_name: backend
+    build:
+      context: .
+      dockerfile: ./packages/backend/Dockerfile
+    ports:
+      - "3000:3000"
+    networks:
+      - product-networks
+    depends_on:
+      - mysql
+  mysql:
+    container_name: mysql-container
+    platform: linux/x86_64
+    image: mysql
+    env_file:
+      - ./packages/backend/.env
+    networks:
+      - product-networks
+  frontend:
+    container_name: frontend
+    build:
+      context: .
+      dockerfile: ./packages/frontend/Dockerfile
+    ports:
+      - "80:80"
+    networks:
+      - product-networks
+networks:
+  product-networks:
+    driver: bridge

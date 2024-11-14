@@ -8,6 +8,7 @@ import {
   Param,
   Post,
   Res,
+  Version,
 } from '@nestjs/common';
 import { SpaceService } from './space.service';
 import { CreateSpaceDto } from './dto/create.space.dto';
@@ -16,7 +17,8 @@ import { Response } from 'express';
 export class SpaceController {
   constructor(private readonly SpaceService: SpaceService) {}
 
-  @Post('v1')
+  @Version('1')
+  @Post()
   async createSpace(
     @Body() createSpaceDto: CreateSpaceDto,
     @Res() res: Response,
@@ -31,6 +33,7 @@ export class SpaceController {
     return res.status(201).json({ spaceId: space.spaceId });
   }
 
+  @Version('1')
   @Get('v1/:spaceId')
   async getSpace(@Param('spaceId') spaceId: string, @Res() res: Response) {
     const space = await this.SpaceService.findById(spaceId);
