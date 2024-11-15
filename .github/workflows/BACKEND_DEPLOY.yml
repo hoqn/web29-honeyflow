@@ -58,4 +58,4 @@ jobs:
 
             # 컨테이너 업데이트
             docker pull ${{ secrets.CONTAINER_REGISTRY_URL }}/backend:latest
-            docker run -d --name backend --network product_network -p 3000:3000 --env-file .env ${{ secrets.CONTAINER_REGISTRY_URL }}/backend:latest
+            docker run -d --name backend --network host --add-host db-host:${{secrets.DB_HOST}} --restart unless-stopped --env-file .env ${{ secrets.CONTAINER_REGISTRY_URL }}/backend:latest
