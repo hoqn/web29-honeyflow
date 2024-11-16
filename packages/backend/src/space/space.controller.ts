@@ -28,12 +28,6 @@ export class SpaceController {
     }
     const spaceId = await this.SpaceService.create(userId, spaceName);
 
-    if (!spaceId) {
-      throw new HttpException(
-        ERROR_MESSAGES.SPACE_CREATION_FAILED,
-        HttpStatus.BAD_REQUEST,
-      );
-    }
     return {
       spaceId,
     };
@@ -43,12 +37,6 @@ export class SpaceController {
   @Get('/:spaceId')
   async getSpace(@Param('spaceId') spaceId: string) {
     const space = await this.SpaceService.findById(spaceId);
-    if (!space) {
-      throw new HttpException(
-        '스페이스가 존재하지 않습니다.',
-        HttpStatus.NOT_FOUND,
-      );
-    }
     return {
       space,
     };

@@ -41,6 +41,9 @@ export class SpaceService {
       edges: JSON.stringify(Edges),
       nodes: JSON.stringify(Nodes),
     });
+    if (!result) {
+      throw new NotFoundException(ERROR_MESSAGES.SPACE_NOT_FOUND);
+    }
     return result.spaceId;
   }
 
