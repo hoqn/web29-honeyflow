@@ -1,15 +1,15 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
-
+import { Entity, Column, PrimaryColumn, BeforeInsert } from 'typeorm';
+import { SnowflakeService } from 'src/common/utils/snowflake.service';
 @Entity()
 export class Space {
-  @PrimaryGeneratedColumn({ type: 'bigint' })
-  id: number;
+  @PrimaryColumn({ type: 'bigint' })
+  id: string;
 
   @Column()
   userId: string;
 
   @Column()
-  spaceId: string;
+  urlPath: string;
 
   @Column()
   name: string;

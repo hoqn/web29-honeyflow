@@ -1,16 +1,24 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { Edge } from './interface/space.edge';
 import { Node } from './interface/space.node';
 import { Space } from './space.entity';
+import { MAX_SPACES } from 'src/common/constants/space.constants';
+import { ERROR_MESSAGES } from 'src/common/constants/error.message.constants';
+import { SnowflakeService } from 'src/common/utils/snowflake.service';
 
 @Injectable()
 export class SpaceService {
   constructor(
     @InjectRepository(Space)
     private readonly spaceRepository: Repository<Space>,
+    private readonly snowflakeService: SnowflakeService,
   ) {}
 
   generateUuid(): string {
@@ -21,20 +29,30 @@ export class SpaceService {
     const Edges: Edge[] = [];
     const Nodes: Node[] = [];
 
-    const spaceId = this.generateUuid();
-    const result = await this.spaceRepository.save({
+    const userSpaceCount = await this.spaceRepository.count({
+      where: { userId },
+    });
+
+    if (userSpaceCount >= MAX_SPACES) {
+      throw new BadRequestException(ERROR_MESSAGES.SPACE_LIMIT_EXCEEDED);
+    }
+
+    const space = await this.spaceRepository.save({
+      id: this.snowflakeService.generateId(),
       userId: userId,
-      spaceId: spaceId,
+      urlPath: this.generateUuid(),
       name: spaceName,
       edges: JSON.stringify(Edges),
       nodes: JSON.stringify(Nodes),
     });
-    return result.spaceId;
+    if (!space) {
+    }
+    return space.urlPath;
   }
 
-  async findById(spaceId: string) {
+  async findById(urlPath: string) {
     const result = await this.spaceRepository.findOne({
-      where: { spaceId },
+      where: { urlPath },
     });
     return result;
   }
