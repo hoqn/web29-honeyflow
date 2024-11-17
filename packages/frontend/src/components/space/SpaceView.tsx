@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Layer, Stage } from "react-konva";
 
-import { HeadNode, NoteNode } from "../Node.tsx";
+import type { Node } from "shared/types";
+
+import Edge from "@/components/Edge";
+import { HeadNode, NoteNode } from "@/components/Node";
+import { edges, nodes } from "@/components/mock";
 
 interface SpaceViewProps {
   autofitTo?: Element | React.RefObject<Element>;
@@ -39,12 +43,29 @@ export default function SpaceView({ autofitTo }: SpaceViewProps) {
     };
   }, [autofitTo]);
 
+  const nodeComponents = {
+    head: (node: Node) => <HeadNode key={node.id} name={node.name} />,
+    note: (node: Node) => (
+      <NoteNode key={node.id} x={node.x} y={node.y} name={node.name} src="" />
+    ),
+  };
+
   return (
     <Stage width={stageSize.width} height={stageSize.height} draggable>
       <Layer offsetX={-stageSize.width / 2} offsetY={-stageSize.height / 2}>
-        {/* <SpaceNode label="HEAD NODE" x={0} y={0} /> */}
-        <HeadNode name="Hello World" />
-        <NoteNode x={100} y={100} src={""} name={"note"} />
+        {nodes.map((node) => {
+          const Component =
+            nodeComponents[node.type as keyof typeof nodeComponents];
+          return Component ? Component(node) : null;
+        })}
+        {edges.map((edge) => (
+          <Edge
+            key={`${edge.from}-${edge.to}`}
+            from={edge.from}
+            to={edge.to}
+            nodes={nodes}
+          />
+        ))}
       </Layer>
     </Stage>
   );

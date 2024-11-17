@@ -1,5 +1,4 @@
-/* eslint-disable no-undef */
-import { useEffect, useRef, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { Circle, Group, Text } from "react-konva";
 
 import Konva from "konva";
@@ -8,13 +7,13 @@ type NodeProps = {
   x: number;
   y: number;
   draggable?: boolean;
-  children?: React.ReactNode;
+  children?: ReactNode;
 } & Konva.GroupConfig;
 
 export default function Node({
   x,
   y,
-  draggable,
+  draggable = true,
   children,
   ...rest
 }: NodeProps) {
@@ -73,14 +72,14 @@ Node.Text = function NodeText({
   );
 };
 
-type HeadNodeProps = {
+export type HeadNodeProps = {
   name: string;
 };
 
 export function HeadNode({ name }: HeadNodeProps) {
   const radius = 64;
   return (
-    <Node x={0} y={0}>
+    <Node x={0} y={0} draggable={false}>
       <Node.Circle radius={radius} fill="#FFCC00" />
       <Node.Text
         width={radius * 2}
@@ -92,7 +91,7 @@ export function HeadNode({ name }: HeadNodeProps) {
   );
 }
 
-type NoteNodeProps = {
+export type NoteNodeProps = {
   x: number;
   y: number;
   src: string;
