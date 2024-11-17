@@ -12,7 +12,6 @@ import { SpaceService } from './space.service';
 import { CreateSpaceDto } from './dto/create.space.dto';
 import { GUEST_USER_ID } from 'src/common/constants/space.constants';
 import { ERROR_MESSAGES } from 'src/common/constants/error.message.constants';
-import { SnowflakeService } from 'src/common/utils/snowflake.service';
 @Controller('space')
 export class SpaceController {
   constructor(private readonly SpaceService: SpaceService) {}
@@ -38,6 +37,12 @@ export class SpaceController {
   @Get('/:urlPath')
   async getSpace(@Param('urlPath') urlPath: string) {
     const space = await this.SpaceService.findById(urlPath);
+    if (!space) {
+      throw new HttpException(
+        ERROR_MESSAGES.SPACE_NOT_FOUND,
+        HttpStatus.NOT_FOUND,
+      );
+    }
     return {
       space,
     };

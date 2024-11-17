@@ -46,7 +46,6 @@ export class SpaceService {
       nodes: JSON.stringify(Nodes),
     });
     if (!space) {
-      throw new NotFoundException(ERROR_MESSAGES.SPACE_NOT_FOUND);
     }
     return space.urlPath;
   }
@@ -55,9 +54,6 @@ export class SpaceService {
     const result = await this.spaceRepository.findOne({
       where: { urlPath },
     });
-    if (!result) {
-      throw new NotFoundException(ERROR_MESSAGES.SPACE_NOT_FOUND);
-    }
     return result;
   }
 }
