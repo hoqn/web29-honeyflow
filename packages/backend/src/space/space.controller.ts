@@ -12,12 +12,18 @@ import { SpaceService } from './space.service';
 import { CreateSpaceDto } from './dto/create.space.dto';
 import { GUEST_USER_ID } from 'src/common/constants/space.constants';
 import { ERROR_MESSAGES } from 'src/common/constants/error.message.constants';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+
+@ApiTags('space')
 @Controller('space')
 export class SpaceController {
   constructor(private readonly SpaceService: SpaceService) {}
 
   @Version('1')
   @Post()
+  @ApiOperation({ summary: '스페이스 생성' })
+  @ApiResponse({ status: 201, description: '스페이스 생성 성공' })
+  @ApiResponse({ status: 400, description: '잘못된 요청' })
   async createSpace(@Body() createSpaceDto: CreateSpaceDto) {
     const { userId, spaceName } = createSpaceDto;
     if (userId !== GUEST_USER_ID || !spaceName) {
@@ -27,7 +33,6 @@ export class SpaceController {
       );
     }
     const urlPath = await this.SpaceService.create(userId, spaceName);
-
     return {
       urlPath,
     };
@@ -35,6 +40,9 @@ export class SpaceController {
 
   @Version('1')
   @Get('/:urlPath')
+  @ApiOperation({ summary: '스페이스 조회' })
+  @ApiResponse({ status: 201, description: '스페이스 조회 성공' })
+  @ApiResponse({ status: 404, description: '스페이스 조회 실패' })
   async getSpace(@Param('urlPath') urlPath: string) {
     const space = await this.SpaceService.findById(urlPath);
     if (!space) {
