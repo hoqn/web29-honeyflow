@@ -1,11 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { VersioningType } from '@nestjs/common';
+import { Logger, VersioningType } from '@nestjs/common';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('/api');
+  const logger = new Logger('Bootstrap');
   app.useGlobalFilters(new AllExceptionsFilter());
   app.enableCors({
     origin: ['http://www.honeyflow.life', 'https://www.honeyflow.life'],
@@ -25,5 +26,6 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api-docs', app, document);
   await app.listen(process.env.PORT ?? 3000);
+  logger.log('honeyflow start');
 }
 bootstrap();
