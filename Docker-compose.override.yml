@@ -1,45 +1,53 @@
 services:
-  backend:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-container
     ports:
-      - "3000:3000"
+      - "3306:3306"
+    networks:
+      - app-network
     environment:
-      - NODE_ENV=development
-      - DATABASE_HOST=mysql
-      - DATABASE_PORT=3306
-      - DATABASE_USER=dev_user
-      - DATABASE_PASSWORD=dev_password
-      - DATABASE_NAME=dev_db
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: dev_db
+      MYSQL_USER: honey
+      MYSQL_PASSWORD: 1234
     volumes:
-      - ./packages/backend:/app/packages/backend
-      - ./packages/shared:/app/packages/shared
-    command: pnpm dev
+      - mysql_data:/var/lib/mysql_data
+    healthcheck:
+      test:
+        ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-p1234"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    command: --bind-address=0.0.0.0
+  backend:
     depends_on:
       mysql:
         condition: service_healthy
+    build:
+      context: .
+      dockerfile: ./packages/backend/Dockerfile
+    container_name: backend
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      MYSQL_HOST: mysql-container
+      MYSQL_PORT: 3306
+      MYSQL_USERNAME: honey
+      MYSQL_PASSWORD: 1234
+      MYSQL_DATABASE: dev_db
+      MYSQL_NAME: dev_db
 
   frontend:
+    build:
+      context: .
+      dockerfile: ./packages/frontend/Dockerfile
+    container_name: frontend
     ports:
       - "80:80"
-    volumes:
-      - ./packages/frontend:/app/packages/frontend
-      - ./packages/shared:/app/packages/shared
-
-  mysql:
-    image: mysql:8.0
-    environment:
-      - MYSQL_ROOT_PASSWORD=1234
-      - MYSQL_DATABASE=dev_db
-      - MYSQL_USER=root
-      - MYSQL_PASSWORD=1234
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
+    depends_on:
+      backend:
+        condition: service_started
 volumes:
   mysql_data:

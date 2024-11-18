@@ -2,7 +2,8 @@ services:
   backend:
     build:
       context: .
-      dockerfile: packages/backend/Dockerfile
+      dockerfile: ./packages/backend/Dockerfile
+      target: production
     restart: unless-stopped
     networks:
       - app-network
@@ -10,7 +11,7 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: packages/frontend/Dockerfile
+      dockerfile: ./packages/frontend/Dockerfile
     restart: unless-stopped
     networks:
       - app-network
