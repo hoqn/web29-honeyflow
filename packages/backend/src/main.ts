@@ -3,11 +3,13 @@ import { AppModule } from './app.module';
 import { Logger, VersioningType } from '@nestjs/common';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { WsAdapter } from '@nestjs/platform-ws';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('/api');
   const logger = new Logger('Bootstrap');
   app.useGlobalFilters(new AllExceptionsFilter());
+  app.useWebSocketAdapter(new WsAdapter(app));
   app.enableCors({
     origin: ['http://www.honeyflow.life', 'https://www.honeyflow.life'],
     methods: 'GET, POST, PUT, DELETE',

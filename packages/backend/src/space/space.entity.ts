@@ -1,9 +1,11 @@
-import { Entity, Column, PrimaryColumn, BeforeInsert } from 'typeorm';
-import { SnowflakeService } from 'src/common/utils/snowflake.service';
+import { Entity, Column, PrimaryColumn } from 'typeorm';
 @Entity()
 export class Space {
   @PrimaryColumn({ type: 'bigint' })
   id: string;
+
+  @Column({ nullable: true })
+  parentSpaceId: string;
 
   @Column()
   userId: string;
