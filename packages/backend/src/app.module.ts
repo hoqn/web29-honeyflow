@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { SpaceModule } from './space/space.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { YjsModule } from './yjs/yjs.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       }),
     }),
     SpaceModule,
+    YjsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
