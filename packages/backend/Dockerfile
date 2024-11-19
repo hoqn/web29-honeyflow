@@ -8,11 +8,12 @@ WORKDIR /app
 RUN apk add --no-cache python3 make g++ && npm install -g pnpm
 
 # 루트 레벨의 패키지 파일들 복사
-COPY package.json pnpm-workspace.yaml ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 
 # packages의 package.json 파일들 복사
 COPY ./packages/backend ./packages/backend/
 COPY ./packages/shared ./packages/shared/
+
 # 의존성 설치 (husky 설치 건너뛰기)
 RUN HUSKY=0 pnpm install --no-frozen-lockfile
 
@@ -48,9 +49,6 @@ COPY --from=builder /app/packages/shared ./packages/shared
 
 # 작업 디렉터리를 백엔드로 변경
 WORKDIR /app/packages/backend
-
-# 환경 변수 설정
-ENV NODE_ENV=production
 
 # 포트 설정
 EXPOSE 3000
