@@ -41,8 +41,6 @@ export class SpaceService {
       edges: JSON.stringify(Edges),
       nodes: JSON.stringify(Nodes),
     });
-    if (!space) {
-    }
     return space.urlPath;
   }
 
@@ -51,5 +49,34 @@ export class SpaceService {
       where: { urlPath },
     });
     return result;
+  }
+
+  async updateByEdges(urlPath: string, edges: Edge[]) {
+    const space = await this.findById(urlPath);
+    if (!space) {
+      throw new BadRequestException(ERROR_MESSAGES.SPACE.NOT_FOUND);
+    }
+
+    try {
+      space.edges = JSON.stringify(edges);
+      await this.spaceRepository.save(space);
+      return space;
+    } catch (error) {
+      throw new BadRequestException(ERROR_MESSAGES.SPACE.UPDATE_FAILED);
+    }
+  }
+  async updateByNodes(urlPath: string, nodes: Node[]) {
+    const space = await this.findById(urlPath);
+    if (!space) {
+      throw new BadRequestException(ERROR_MESSAGES.SPACE.NOT_FOUND);
+    }
+
+    try {
+      space.nodes = JSON.stringify(nodes);
+      await this.spaceRepository.save(space);
+      return space;
+    } catch (error) {
+      throw new BadRequestException(ERROR_MESSAGES.SPACE.UPDATE_FAILED);
+    }
   }
 }

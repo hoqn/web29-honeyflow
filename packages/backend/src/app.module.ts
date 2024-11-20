@@ -5,6 +5,7 @@ import { SpaceModule } from './space/space.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { YjsModule } from './yjs/yjs.module';
+import { NoteModule } from './note/note.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { YjsModule } from './yjs/yjs.module';
     }),
     SpaceModule,
     YjsModule,
+    NoteModule,
   ],
   controllers: [AppController],
   providers: [AppService],
