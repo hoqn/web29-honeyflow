@@ -11,7 +11,6 @@ import { NoteService } from 'src/note/note.service';
 import { parseSocketUrl } from 'src/common/utils/socket.util';
 import { YSocketIO } from 'y-socket.io/dist/server';
 import { Server, Socket } from 'socket.io';
-import { Edge, Node } from '../../../shared/types';
 import * as Y from 'yjs';
 
 const SPACE = 'space';
