@@ -1,0 +1,8 @@
+import { ApiProperty } from '@nestjs/swagger';
+
+export class CreateSpaceDto {
+  @ApiProperty({ description: '유저 ID' })
+  userId: string;
+  @ApiProperty({ description: '스페이스 이름' })
+  spaceName: string;
+}
