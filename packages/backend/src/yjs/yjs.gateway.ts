@@ -5,134 +5,96 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
-import { ERROR_MESSAGES } from 'src/common/constants/error.message.constants';
 import { SpaceService } from 'src/space/space.service';
+
 import { NoteService } from 'src/note/note.service';
 import { parseSocketUrl } from 'src/common/utils/socket.util';
-import { YSocketIO } from 'y-socket.io/dist/server';
-import { Server, Socket } from 'socket.io';
+import { WebsocketStatus } from 'src/common/constants/websocket.constants';
+import { Server } from 'ws';
+import { Request } from 'express';
+import { setupWSConnection } from 'y-websocket/bin/utils';
 import * as Y from 'yjs';
-
+import { ERROR_MESSAGES } from 'src/common/constants/error.message.constants';
 const SPACE = 'space';
 const NOTE = 'note';
+
 @WebSocketGateway(9001)
 export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(YjsGateway.name);
-
   constructor(
     private readonly spaceService: SpaceService,
     private readonly noteService: NoteService,
   ) {}
 
   @WebSocketServer()
-  private server: Server;
+  server: Server;
 
-  private ysocketio: YSocketIO;
-
-  async handleConnection(socket: Socket) {
-    this.logger.log(`Client connected: ${socket.id}`);
+  async handleConnection(connection: WebSocket, request: Request) {
+    this.logger.log('connection start');
 
     try {
-      const url = socket.handshake?.url || '';
+      const url = request.url || '';
       const { urlType, urlId } = parseSocketUrl(url);
-
-      if (!this.validateUrl(socket, urlType, urlId)) return;
-
+      if (!this.validateUrl(urlType, urlId)) {
+        connection.close(
+          WebsocketStatus.POLICY_VIOLATION,
+          ERROR_MESSAGES.SOCKET.INVALID_URL,
+        );
+        return;
+      }
       this.logger.log(`Parsed URL - Type: ${urlType}, ID: ${urlId}`);
-
       urlType === SPACE
-        ? await this.initializeSpace(socket, urlId as string)
-        : await this.initializeNote(socket, urlId as string);
+        ? await this.initializeSpace(connection, request, urlId as string)
+        : await this.initializeNote(connection, request, urlId as string);
     } catch (error) {
-      this.logger.error(`Connection failed for ${socket.id}: ${error.message}`);
+      this.logger.error(`Connection failed for : ${error.message}`);
     }
   }
 
-  handleDisconnect(socket: Socket) {
-    this.logger.log(`Client disconnected: ${socket.id}`);
+  handleDisconnect() {
+    this.logger.log(`connection end`);
   }
 
-  private validateUrl(
-    socket: Socket,
-    urlType: string | null,
-    urlId: string | null,
-  ): boolean {
+  private validateUrl(urlType: string | null, urlId: string | null): boolean {
     if (!urlType || !urlId || (urlType !== 'space' && urlType !== 'note')) {
-      this.sendErrorAndDisconnect(socket, ERROR_MESSAGES.SOCKET.INVALID_URL);
       return false;
     }
     return true;
   }
 
-  private sendErrorAndDisconnect(socket: Socket, errorMessage: string) {
-    this.logger.warn(errorMessage);
-    socket.emit('error', { message: errorMessage });
-    socket.disconnect(true);
-  }
-
-  private async initializeSpace(socket: Socket, urlId: string) {
-    try {
-      const space = await this.spaceService.findById(urlId);
-      if (!space) {
-        this.sendErrorAndDisconnect(socket, ERROR_MESSAGES.SPACE.NOT_FOUND);
-        return;
-      }
-
-      this.setupYjs(socket, SPACE, urlId);
-    } catch (error) {
-      this.logger.error(
-        `${ERROR_MESSAGES.NOTE.INITIALIZE_FAILED}: ${error.message}`,
+  private async initializeSpace(
+    connection: WebSocket,
+    request: Request,
+    urlId: string,
+  ) {
+    const space = await this.spaceService.findById(urlId);
+    if (!space) {
+      connection.close(
+        WebsocketStatus.POLICY_VIOLATION,
+        ERROR_MESSAGES.SPACE.NOT_FOUND,
       );
-      this.sendErrorAndDisconnect(socket, ERROR_MESSAGES.SPACE.UPDATE_FAILED);
+      return;
     }
+    setupWSConnection(connection, request, {
+      docName: space.name,
+    });
   }
 
-  private async initializeNote(socket: Socket, urlId: string) {
-    try {
-      const note = await this.noteService.findById(urlId);
-      if (!note) {
-        this.sendErrorAndDisconnect(socket, ERROR_MESSAGES.NOTE.NOT_FOUND);
-        return;
-      }
-
-      this.setupYjs(socket, NOTE, urlId);
-    } catch (error) {
-      this.logger.error(
-        `${ERROR_MESSAGES.NOTE.INITIALIZE_FAILED}: ${error.message}`,
+  private async initializeNote(
+    connection: WebSocket,
+    request: Request,
+    urlId: string,
+  ) {
+    const note = await this.noteService.findById(urlId);
+    if (!note) {
+      connection.close(
+        WebsocketStatus.POLICY_VIOLATION,
+        ERROR_MESSAGES.NOTE.NOT_FOUND,
       );
-      this.sendErrorAndDisconnect(socket, ERROR_MESSAGES.NOTE.UPDATE_FAILED);
+      return;
     }
-  }
-
-  private setupYjs(socket: Socket, type: string, urlId: string) {
-    this.ysocketio = new YSocketIO(this.server);
-
-    this.ysocketio.on(`${type} update`, (doc: Y.Doc) => {
-      if (type === SPACE) {
-        this.observeSpace(doc, urlId);
-      } else if (type === NOTE) {
-        this.observeNote(doc);
-      }
+    setupWSConnection(connection, request, {
+      docName: note.name,
     });
-  }
-
-  private observeSpace(doc: Y.Doc, urlId: string) {
-    const nodes = doc.getMap('nodes');
-    const edges = doc.getMap('edges');
-
-    nodes.observe(() => {
-      const updatedNodes = Object.values(nodes.toJSON());
-      this.spaceService.updateByNodes(urlId, updatedNodes);
-    });
-
-    edges.observe(() => {
-      const updatedEdges = Object.values(edges.toJSON());
-      this.spaceService.updateByEdges(urlId, updatedEdges);
-    });
-  }
-
-  private observeNote(doc: Y.Doc) {
-    const note = doc.getXmlFragment('note');
-    note.observeDeep(() => {});
   }
 }
