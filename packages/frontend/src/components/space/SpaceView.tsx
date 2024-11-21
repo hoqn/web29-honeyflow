@@ -7,6 +7,7 @@ import type { Node } from "shared/types";
 
 import Edge from "@/components/Edge";
 import { HeadNode, NoteNode } from "@/components/Node";
+import useYjsSpace from "@/hooks/useYjsSpace";
 import { edgeSample, nodeSample } from "@/components/mock";
 import useDragNode from "@/hooks/useDragNode";
 import useSpaceElements from "@/hooks/useSpaceElements";
@@ -32,6 +33,8 @@ export default function SpaceView({ autofitTo }: SpaceViewProps) {
   const { drag, dropPosition, handlePaletteSelect } = useDragNode(spaceActions);
   const { startNode, handlers } = drag;
 
+  const { nodes, edges } = useYjsSpace();
+
   function createDragBoundFunc(node: Node) {
     return function dragBoundFunc() {
       /** 원래 위치로 고정. stage도 draggable하므로 Layer에 적용된 offset을 보정하여 절대 위치로 표시.  */
@@ -41,6 +44,7 @@ export default function SpaceView({ autofitTo }: SpaceViewProps) {
       };
     };
   }
+        
   useEffect(() => {
     if (!autofitTo) {
       return undefined;
@@ -111,19 +115,21 @@ export default function SpaceView({ autofitTo }: SpaceViewProps) {
             dragPosition={drag.position}
           />
         )}
-        {nodes.map((node) => {
-          const Component =
-            nodeComponents[node.type as keyof typeof nodeComponents];
-          return Component ? Component(node) : null;
-        })}
-        {edges.map((edge) => (
-          <Edge
-            key={`${edge.from}-${edge.to}`}
-            from={edge.from}
-            to={edge.to}
-            nodes={nodes}
-          />
-        ))}
+        {nodes &&
+          Object.entries(nodes).map(([, node]) => {
+            const Component =
+              nodeComponents[node.type as keyof typeof nodeComponents];
+            return Component ? Component(node) : null;
+          })}
+        {edges &&
+          Object.entries(edges).map(([edgeId, edge]) => (
+            <Edge
+              key={edgeId || `${edge.from.id}-${edge.to.id}`}
+              from={edge.from}
+              to={edge.to}
+              nodes={nodes}
+            />
+          ))}
         {dropPosition && (
           <Html>
             <div
