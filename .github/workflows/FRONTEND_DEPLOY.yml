@@ -1,7 +1,7 @@
 name: 프론트엔드 배포
 on:
   push:
-    branches: [main]
+    branches: [dev]
     paths:
       - "packages/frontend/**"
       - "packages/shared/**"
