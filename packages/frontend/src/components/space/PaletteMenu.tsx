@@ -1,7 +1,7 @@
+import { useEffect, useState } from "react";
+
 import { Folder, Image, Link, LucideIcon, NotebookPen, X } from "lucide-react";
 import { Node } from "shared/types";
-
-import { useEffect, useState } from "react";
 
 import { circle, hexagon } from "@/assets/shapes";
 
@@ -129,7 +129,7 @@ export default function PaletteMenu({ items, onSelect }: PaletteMenuProps) {
       return;
     }
 
-    onSelect(type);
+    onSelect(type, undefined);
   };
 
   return (
