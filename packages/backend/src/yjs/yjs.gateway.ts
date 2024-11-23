@@ -90,6 +90,7 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       nodes: JSON.parse(space.nodes),
     };
 
+    // Todo
     setPersistence({
       bindState: (docName: string, ydoc: Y.Doc) => {
         const yContext = ydoc.getMap('context');
@@ -106,7 +107,6 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
         console.log(JSON.stringify(yEdges));
         console.log(JSON.stringify(yNodes));
-
         return Promise.resolve();
       },
     });
