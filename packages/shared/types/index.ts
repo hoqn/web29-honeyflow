@@ -17,8 +17,17 @@ export type EdgeWithId = {
 };
 
 export type SpaceData = {
-  contextId: string;
+  id: string;
   parentContextId?: string;
+  edges: Record<string, Edge>; // <edgeId, {}>
+  nodes: Record<Node["id"], Node>;
+};
+
+export type SpaceEntityData = {
+  id: string;
+  parentContextId?: string;
+  userId: string;
+  urlPath: string;
   edges: Record<string, Edge>; // <edgeId, {}>
   nodes: Record<Node["id"], Node>;
 };

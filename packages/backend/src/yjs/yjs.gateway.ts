@@ -12,11 +12,19 @@ import { parseSocketUrl } from 'src/common/utils/socket.util';
 import { WebsocketStatus } from 'src/common/constants/websocket.constants';
 import { Server } from 'ws';
 import { Request } from 'express';
-import { setupWSConnection } from 'y-websocket/bin/utils';
+import {
+  setupWSConnection,
+  setPersistence,
+  setContentInitializor,
+  // @ts-expect-error /
+} from 'y-websocket/bin/utils';
 import * as Y from 'yjs';
 import { ERROR_MESSAGES } from 'src/common/constants/error.message.constants';
+import { generateUuid } from 'src/common/utils/url.utils';
 const SPACE = 'space';
 const NOTE = 'note';
+
+import { SpaceData } from 'shared/types';
 
 @WebSocketGateway(9001)
 export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -51,7 +59,7 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  handleDisconnect() {
+  handleDisconnect(connection: WebSocket) {
     this.logger.log(`connection end`);
   }
 
@@ -75,11 +83,63 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       );
       return;
     }
+
+    const parsedSpace = {
+      ...space,
+      edges: JSON.parse(space.edges),
+      nodes: JSON.parse(space.nodes),
+    };
+
+    setPersistence({
+      bindState: (docName: string, ydoc: Y.Doc) => {
+        const yContext = ydoc.getMap('context');
+        const yEdges = yContext.get('edges');
+        const yNodes = yContext.get('nodes');
+
+        console.log(JSON.stringify(yEdges));
+        console.log(JSON.stringify(yNodes));
+      },
+      writeState: (docName: string, ydoc: Y.Doc) => {
+        const yContext = ydoc.getMap('context');
+        const yEdges = yContext.get('edges');
+        const yNodes = yContext.get('nodes');
+
+        console.log(JSON.stringify(yEdges));
+        console.log(JSON.stringify(yNodes));
+
+        return Promise.resolve();
+      },
+    });
+
+    setContentInitializor((ydoc: Y.Doc) => {
+      this.setYSpace(ydoc, parsedSpace);
+    });
+
     setupWSConnection(connection, request, {
-      docName: space.name,
+      docName: parsedSpace.name,
     });
   }
 
+  private async setYSpace(ydoc: Y.Doc, parsedSpace) {
+    const yContext = ydoc.getMap('context');
+
+    const yEdges = new Y.Map();
+    const yNodes = new Y.Map();
+
+    const edges = parsedSpace.edges;
+    const nodes = parsedSpace.nodes;
+
+    Object.entries(edges).forEach(([edgeId, edge]) => {
+      yEdges.set(edgeId, edge);
+    });
+
+    Object.entries(nodes).forEach(([nodeId, node]) => {
+      yNodes.set(nodeId, node);
+    });
+
+    yContext.set('edges', yEdges);
+    yContext.set('nodes', yNodes);
+  }
   private async initializeNote(
     connection: WebSocket,
     request: Request,
@@ -93,6 +153,7 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       );
       return;
     }
+    connection.send(JSON.stringify(note));
     setupWSConnection(connection, request, {
       docName: note.name,
     });
