@@ -11,7 +11,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/space/:entrySpaceId" element={<SpacePage />} />
-        <Route path="/note/:noteId" element={<Editor />} />
+        <Route path="/edit/:noteId" element={<Editor />} />
       </Routes>
     </BrowserRouter>
   );
