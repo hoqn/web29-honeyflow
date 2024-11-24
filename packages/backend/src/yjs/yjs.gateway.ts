@@ -10,13 +10,12 @@ import { SpaceService } from 'src/space/space.service';
 import { NoteService } from 'src/note/note.service';
 import { parseSocketUrl } from 'src/common/utils/socket.util';
 import { WebsocketStatus } from 'src/common/constants/websocket.constants';
-import { Server } from 'ws';
+import { Server, WebSocket } from 'ws';
 import { Request } from 'express';
 import {
   setupWSConnection,
   setPersistence,
   setContentInitializor,
-  // @ts-expect-error /
 } from 'y-websocket/bin/utils';
 import * as Y from 'yjs';
 import { ERROR_MESSAGES } from 'src/common/constants/error.message.constants';
@@ -97,7 +96,8 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     // Todo
     setPersistence({
-      bindState: (docName: string, ydoc: Y.Doc) => {
+      provider: '',
+      bindState: (docName, ydoc) => {
         const yContext = ydoc.getMap('context');
         const yEdges = yContext.get('edges');
         const yNodes = yContext.get('nodes');
@@ -105,7 +105,7 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
         console.log(JSON.stringify(yEdges));
         console.log(JSON.stringify(yNodes));
       },
-      writeState: (docName: string, ydoc: Y.Doc) => {
+      writeState: async (docName, ydoc) => {
         const yContext = ydoc.getMap('context');
         const yEdges = yContext.get('edges');
         const yNodes = yContext.get('nodes');
@@ -116,8 +116,9 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       },
     });
 
-    setContentInitializor((ydoc: Y.Doc) => {
+    setContentInitializor((ydoc) => {
       this.setYSpace(ydoc, parsedSpace);
+      return Promise.resolve();
     });
 
     setupWSConnection(connection, request, {
@@ -165,6 +166,7 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       noteContent: note.content,
     };
     setPersistence({
+      provider: '',
       bindState: (docName: string, ydoc: Y.Doc) => {
         const yNote = ydoc.getMap('note');
         const yTitle = ydoc.getText('title');
@@ -174,7 +176,7 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
         console.log(JSON.stringify(yTitle));
         console.log(JSON.stringify(yContent));
       },
-      writeState: (docName: string, ydoc: Y.Doc) => {
+      writeState: async (docName, ydoc) => {
         const yNote = ydoc.getMap('note');
         const yTitle = ydoc.getText('title');
         const yContent = ydoc.getMap('context');
@@ -185,8 +187,9 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       },
     });
 
-    setContentInitializor((ydoc: Y.Doc) => {
+    setContentInitializor((ydoc) => {
       this.setYNote(ydoc, parsedNote);
+      return Promise.resolve();
     });
 
     setupWSConnection(connection, request, {
