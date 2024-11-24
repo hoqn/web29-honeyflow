@@ -24,7 +24,7 @@ export class SpaceService {
       x: 0,
       y: 0,
       type: 'head',
-      name: 'Hello',
+      name: spaceName,
     };
     Nodes[headNode.id] = headNode;
 
