@@ -179,37 +179,15 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       ...note,
       content: JSON.stringify(note.content),
     };
-    setPersistence({
-      provider: '',
-      bindState: (docName: string, ydoc: Y.Doc) => {
-        const yNote = ydoc.getMap('note');
-        const yContent = ydoc.getXmlFragment('content');
-
-        this.logger.log(JSON.stringify(yNote));
-        this.logger.log(JSON.stringify(yContent));
-      },
-      writeState: async (docName, ydoc) => {
-        const yNote = ydoc.getMap('note');
-        const yContent = ydoc.getMap('context');
-
-        this.logger.log(JSON.stringify(yNote));
-        this.logger.log(JSON.stringify(yContent));
-      },
-    });
-
-    setContentInitializor((ydoc) => {
-      this.setYNote(ydoc, parsedNote);
-      return Promise.resolve();
-    });
 
     setupWSConnection(connection, request, {
       docName: note.name,
     });
   }
 
-  private async setYNote(ydoc: Y.Doc, parsedNote) {
-    const xmlNote = ydoc.getXmlFragment('note');
-  }
+  // private async setYNote(ydoc: Y.Doc, parsedNote) {
+  //   // const xmlNote = ydoc.getXmlFragment('note');
+  // }
 
   private insertProseMirrorDataToXmlFragment(
     xmlFragment: Y.XmlFragment,
