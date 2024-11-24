@@ -94,24 +94,39 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       nodes: JSON.parse(space.nodes),
     };
 
-    // Todo
     setPersistence({
       provider: '',
-      bindState: (docName, ydoc) => {
-        const yContext = ydoc.getMap('context');
-        const yEdges = yContext.get('edges');
-        const yNodes = yContext.get('nodes');
-
-        console.log(JSON.stringify(yEdges));
-        console.log(JSON.stringify(yNodes));
+      bindState: (docName: string, ydoc: Y.Doc) => {
+        try {
+          const yContext = ydoc.getMap('context');
+          this.logger.log(
+            `space bindState: docName: ${docName} urlId: ${urlId} ydoc:${JSON.stringify(yContext)}`,
+          );
+        } catch (e) {
+          this.logger.error(`writeState`);
+        }
       },
-      writeState: async (docName, ydoc) => {
-        const yContext = ydoc.getMap('context');
-        const yEdges = yContext.get('edges');
-        const yNodes = yContext.get('nodes');
+      writeState: (docName: string, ydoc: Y.Doc) => {
+        try {
+          const yContext = ydoc.getMap('context');
+          const yEdges = yContext.get('edges');
+          const yNodes = yContext.get('nodes');
 
-        console.log(JSON.stringify(yEdges));
-        console.log(JSON.stringify(yNodes));
+          this.logger.log(
+            `space writeState: docName: ${docName} urlId: ${urlId} ydoc:${JSON.stringify(yContext)}`,
+          );
+          this.spaceService.updateByEdges(
+            urlId,
+            JSON.parse(JSON.stringify(yEdges)),
+          );
+          this.spaceService.updateByNodes(
+            urlId,
+            JSON.parse(JSON.stringify(yNodes)),
+          );
+        } catch (e) {
+          this.logger.error(`writeState`);
+        }
+
         return Promise.resolve();
       },
     });
@@ -138,7 +153,6 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     Object.entries(edges).forEach(([edgeId, edge]) => {
       yEdges.set(edgeId, edge);
     });
-
     Object.entries(nodes).forEach(([nodeId, node]) => {
       yNodes.set(nodeId, node);
     });
@@ -151,6 +165,7 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     request: Request,
     urlId: string,
   ) {
+    this.logger.log(`initializeNote `);
     const note = await this.noteService.findById(urlId);
     if (!note) {
       connection.close(
@@ -162,28 +177,23 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     const parsedNote = {
       ...note,
-      noteName: note.name,
-      noteContent: note.content,
+      content: JSON.stringify(note.content),
     };
     setPersistence({
       provider: '',
       bindState: (docName: string, ydoc: Y.Doc) => {
         const yNote = ydoc.getMap('note');
-        const yTitle = ydoc.getText('title');
         const yContent = ydoc.getXmlFragment('content');
 
-        console.log(JSON.stringify(yNote));
-        console.log(JSON.stringify(yTitle));
-        console.log(JSON.stringify(yContent));
+        this.logger.log(JSON.stringify(yNote));
+        this.logger.log(JSON.stringify(yContent));
       },
       writeState: async (docName, ydoc) => {
         const yNote = ydoc.getMap('note');
-        const yTitle = ydoc.getText('title');
         const yContent = ydoc.getMap('context');
 
-        console.log(JSON.stringify(yNote));
-        console.log(JSON.stringify(yTitle));
-        console.log(JSON.stringify(yContent));
+        this.logger.log(JSON.stringify(yNote));
+        this.logger.log(JSON.stringify(yContent));
       },
     });
 
@@ -198,9 +208,7 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   private async setYNote(ydoc: Y.Doc, parsedNote) {
-    const yMap = ydoc.getMap('note');
-    const yTitle = ydoc.getText('title');
-    const yContent = ydoc.getXmlFragment('content');
+    const xmlNote = ydoc.getXmlFragment('note');
   }
 
   private insertProseMirrorDataToXmlFragment(

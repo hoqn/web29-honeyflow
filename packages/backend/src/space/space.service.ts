@@ -55,8 +55,8 @@ export class SpaceService {
     return result;
   }
 
-  async updateByEdges(urlPath: string, edges: Edge[]) {
-    const space = await this.findById(urlPath);
+  async updateByEdges(id: string, edges: string) {
+    const space = await this.findById(id);
     if (!space) {
       throw new BadRequestException(ERROR_MESSAGES.SPACE.NOT_FOUND);
     }
@@ -69,8 +69,9 @@ export class SpaceService {
       throw new BadRequestException(ERROR_MESSAGES.SPACE.UPDATE_FAILED);
     }
   }
-  async updateByNodes(urlPath: string, nodes: Node[]) {
-    const space = await this.findById(urlPath);
+
+  async updateByNodes(id: string, nodes: string) {
+    const space = await this.findById(id);
     if (!space) {
       throw new BadRequestException(ERROR_MESSAGES.SPACE.NOT_FOUND);
     }
