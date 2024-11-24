@@ -160,6 +160,7 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     yContext.set('edges', yEdges);
     yContext.set('nodes', yNodes);
   }
+
   private async initializeNote(
     connection: WebSocket,
     request: Request,
@@ -175,36 +176,35 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
 
-    const parsedNote = {
-      ...note,
-      content: JSON.stringify(note.content),
-    };
-    setPersistence({
-      provider: '',
-      bindState: (docName: string, ydoc: Y.Doc) => {
-        const yNote = ydoc.getMap('note');
-        const yContent = ydoc.getXmlFragment('content');
+    // const parsedNote = {
+    //   ...note,
+    //   content: JSON.stringify(note.content),
+    // };
+    // setPersistence({
+    //   provider: '',
+    //   bindState: (docName: string, ydoc: Y.Doc) => {
+    //     const yNote = ydoc.getMap('note');
+    //     const yContent = ydoc.getXmlFragment('content');
 
-        this.logger.log(JSON.stringify(yNote));
-        this.logger.log(JSON.stringify(yContent));
-      },
-      writeState: async (docName, ydoc) => {
-        const yNote = ydoc.getMap('note');
-        const yContent = ydoc.getMap('context');
+    //     this.logger.log(JSON.stringify(yNote));
+    //     this.logger.log(JSON.stringify(yContent));
+    //   },
+    //   writeState: async (docName, ydoc) => {
+    //     const yNote = ydoc.getMap('note');
+    //     const yContent = ydoc.getMap('context');
 
-        this.logger.log(JSON.stringify(yNote));
-        this.logger.log(JSON.stringify(yContent));
-      },
-    });
+    //     this.logger.log(JSON.stringify(yNote));
+    //     this.logger.log(JSON.stringify(yContent));
+    //   },
+    // });
 
-    setContentInitializor((ydoc) => {
-      this.setYNote(ydoc, parsedNote);
-      return Promise.resolve();
-    });
+    // setContentInitializor((ydoc) => {
+    //   this.setYNote(ydoc, parsedNote);
+    //   return Promise.resolve();
+    // });
 
-    setupWSConnection(connection, request, {
-      docName: note.name,
-    });
+    setupWSConnection(connection, request);
+    this.logger.log(`connection complete`);
   }
 
   private async setYNote(ydoc: Y.Doc, parsedNote) {
