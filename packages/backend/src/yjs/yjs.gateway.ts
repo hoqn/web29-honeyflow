@@ -20,6 +20,11 @@ import {
 } from 'y-websocket/bin/utils';
 import * as Y from 'yjs';
 import { ERROR_MESSAGES } from 'src/common/constants/error.message.constants';
+import {
+  yXmlFragmentToProsemirrorJSON,
+  prosemirrorJSONToYXmlFragment,
+  // @ts-expect-error /
+} from 'y-prosemirror';
 import { generateUuid } from 'src/common/utils/url.utils';
 const SPACE = 'space';
 const NOTE = 'note';
@@ -153,13 +158,68 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       );
       return;
     }
-    connection.send(JSON.stringify(note));
+
+    const parsedNote = {
+      ...note,
+      noteName: note.name,
+      noteContent: note.content,
+    };
+    setPersistence({
+      bindState: (docName: string, ydoc: Y.Doc) => {
+        const yNote = ydoc.getMap('note');
+        const yTitle = ydoc.getText('title');
+        const yContent = ydoc.getXmlFragment('content');
+
+        console.log(JSON.stringify(yNote));
+        console.log(JSON.stringify(yTitle));
+        console.log(JSON.stringify(yContent));
+      },
+      writeState: (docName: string, ydoc: Y.Doc) => {
+        const yNote = ydoc.getMap('note');
+        const yTitle = ydoc.getText('title');
+        const yContent = ydoc.getMap('context');
+
+        console.log(JSON.stringify(yNote));
+        console.log(JSON.stringify(yTitle));
+        console.log(JSON.stringify(yContent));
+      },
+    });
+
+    setContentInitializor((ydoc: Y.Doc) => {
+      this.setYNote(ydoc, parsedNote);
+    });
+
     setupWSConnection(connection, request, {
       docName: note.name,
     });
   }
 
-  private async setYNote(ydoc:Y.Doc, parsedNote){
-    const yNote, ydoc.get('')
+  private async setYNote(ydoc: Y.Doc, parsedNote) {
+    const yMap = ydoc.getMap('note');
+    const yTitle = ydoc.getText('title');
+    const yContent = ydoc.getXmlFragment('content');
+  }
+
+  private insertProseMirrorDataToXmlFragment(
+    xmlFragment: Y.XmlFragment,
+    data: any[],
+  ) {
+    xmlFragment.delete(0, xmlFragment.length);
+
+    data.forEach((nodeData) => {
+      const yNode = new Y.XmlElement(nodeData.type);
+
+      if (nodeData.content) {
+        nodeData.content.forEach((child) => {
+          if (child.type === 'text') {
+            const yText = new Y.XmlText();
+            yText.insert(0, child.text);
+            yNode.push([yText]);
+          }
+        });
+      }
+
+      xmlFragment.push([yNode]);
+    });
   }
 }
