@@ -176,6 +176,23 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
 
+    setPersistence({
+      provider: '',
+      bindState: async (docName: string, ydoc: Y.Doc) => {
+        if (note.content) {
+          const updates = new Uint8Array(Buffer.from(note.content, 'base64'));
+          Y.applyUpdate(ydoc, updates);
+        }
+      },
+      writeState: async (docName: string, ydoc: Y.Doc) => {
+        const updates = Y.encodeStateAsUpdate(ydoc);
+        const encodedUpdates = Buffer.from(updates).toString('base64');
+        await this.noteService.updateContent(urlId, encodedUpdates);
+      },
+    });
+
+    //NOTE - 하단 사용되지 않는 로직은 검토 후 삭제해주셔도 괜찮을 것 같습니다.
+
     // const parsedNote = {
     //   ...note,
     //   content: JSON.stringify(note.content),
