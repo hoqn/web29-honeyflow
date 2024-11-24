@@ -8,18 +8,17 @@ import useMilkdownEditor from "@/hooks/useMilkdownEditor";
 import { BlockView } from "./Block";
 import "./Editor.css";
 
-function MilkdownEditor() {
+function MilkdownEditor(urlPath: string) {
   const { loading, get } = useMilkdownEditor({
     BlockView,
   });
 
-  // FIXME - [서버 로직 추가 요망] params에 따라서 다른 접속 경로가 되어야함
+  // FIXME - [서버 로직 추가 요망] params에 따라서 다른 접속 경로가 되어야함/
   useMilkdownCollab({
     editor: loading ? null : get() || null,
-    websocketUrl: "ws://localhost:3001/note",
-    roomName: "123",
+    websocketUrl: "ws://backend:9001/note",
+    roomName: urlPath,
   });
-
   return <Milkdown />;
 }
 

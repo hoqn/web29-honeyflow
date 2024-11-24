@@ -158,4 +158,8 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       docName: note.name,
     });
   }
+
+  private async setYNote(ydoc:Y.Doc, parsedNote){
+    const yNote, ydoc.get('')
+  }
 }

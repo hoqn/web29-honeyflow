@@ -22,12 +22,3 @@ export type SpaceData = {
   edges: Record<string, Edge>; // <edgeId, {}>
   nodes: Record<Node["id"], Node>;
 };
-
-export type SpaceEntityData = {
-  id: string;
-  parentContextId?: string;
-  userId: string;
-  urlPath: string;
-  edges: Record<string, Edge>; // <edgeId, {}>
-  nodes: Record<Node["id"], Node>;
-};
