@@ -207,9 +207,9 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.logger.log(`connection complete`);
   }
 
-  private async setYNote(ydoc: Y.Doc, parsedNote) {
-    const xmlNote = ydoc.getXmlFragment('note');
-  }
+  // private async setYNote(ydoc: Y.Doc, parsedNote) {
+  //   // const xmlNote = ydoc.getXmlFragment('note');
+  // }
 
   private insertProseMirrorDataToXmlFragment(
     xmlFragment: Y.XmlFragment,
