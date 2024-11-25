@@ -4,6 +4,7 @@ import {
   WebSocketServer,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  OnGatewayInit,
 } from '@nestjs/websockets';
 import { SpaceService } from 'src/space/space.service';
 
@@ -47,6 +48,9 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       const url = request.url || '';
       const { urlType, urlId } = parseSocketUrl(url);
+      this.logger.log(`url ${request.url}`);
+      this.logger.log(`Parsed URL - Type: ${urlType}, ID: ${urlId}`);
+      this.logger.log(`Parsed URL - Type: ${urlType}, ID: ${urlId}`);
       if (!this.validateUrl(urlType, urlId)) {
         connection.close(
           WebsocketStatus.POLICY_VIOLATION,
@@ -54,7 +58,6 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
         );
         return;
       }
-      this.logger.log(`Parsed URL - Type: ${urlType}, ID: ${urlId}`);
       urlType === SPACE
         ? await this.initializeSpace(connection, request, urlId as string)
         : await this.initializeNote(connection, request, urlId as string);
@@ -79,21 +82,6 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     request: Request,
     urlId: string,
   ) {
-    const space = await this.spaceService.findById(urlId);
-    if (!space) {
-      connection.close(
-        WebsocketStatus.POLICY_VIOLATION,
-        ERROR_MESSAGES.SPACE.NOT_FOUND,
-      );
-      return;
-    }
-
-    const parsedSpace = {
-      ...space,
-      edges: JSON.parse(space.edges),
-      nodes: JSON.parse(space.nodes),
-    };
-
     setPersistence({
       provider: '',
       bindState: (docName: string, ydoc: Y.Doc) => {
@@ -131,13 +119,27 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       },
     });
 
-    setContentInitializor((ydoc) => {
+    setContentInitializor(async (ydoc) => {
+      const space = await this.spaceService.findById(urlId);
+      if (!space) {
+        connection.close(
+          WebsocketStatus.POLICY_VIOLATION,
+          ERROR_MESSAGES.SPACE.NOT_FOUND,
+        );
+        return;
+      }
+
+      const parsedSpace = {
+        ...space,
+        edges: JSON.parse(space.edges),
+        nodes: JSON.parse(space.nodes),
+      };
       this.setYSpace(ydoc, parsedSpace);
       return Promise.resolve();
     });
 
     setupWSConnection(connection, request, {
-      docName: parsedSpace.name,
+      docName: urlId,
     });
   }
 
@@ -191,63 +193,7 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       },
     });
 
-    //NOTE - 하단 사용되지 않는 로직은 검토 후 삭제해주셔도 괜찮을 것 같습니다.
-
-    // const parsedNote = {
-    //   ...note,
-    //   content: JSON.stringify(note.content),
-    // };
-    // setPersistence({
-    //   provider: '',
-    //   bindState: (docName: string, ydoc: Y.Doc) => {
-    //     const yNote = ydoc.getMap('note');
-    //     const yContent = ydoc.getXmlFragment('content');
-
-    //     this.logger.log(JSON.stringify(yNote));
-    //     this.logger.log(JSON.stringify(yContent));
-    //   },
-    //   writeState: async (docName, ydoc) => {
-    //     const yNote = ydoc.getMap('note');
-    //     const yContent = ydoc.getMap('context');
-
-    //     this.logger.log(JSON.stringify(yNote));
-    //     this.logger.log(JSON.stringify(yContent));
-    //   },
-    // });
-
-    // setContentInitializor((ydoc) => {
-    //   this.setYNote(ydoc, parsedNote);
-    //   return Promise.resolve();
-    // });
-
     setupWSConnection(connection, request);
     this.logger.log(`connection complete`);
-  }
-
-  // private async setYNote(ydoc: Y.Doc, parsedNote) {
-  //   // const xmlNote = ydoc.getXmlFragment('note');
-  // }
-
-  private insertProseMirrorDataToXmlFragment(
-    xmlFragment: Y.XmlFragment,
-    data: any[],
-  ) {
-    xmlFragment.delete(0, xmlFragment.length);
-
-    data.forEach((nodeData) => {
-      const yNode = new Y.XmlElement(nodeData.type);
-
-      if (nodeData.content) {
-        nodeData.content.forEach((child) => {
-          if (child.type === 'text') {
-            const yText = new Y.XmlText();
-            yText.insert(0, child.text);
-            yNode.push([yText]);
-          }
-        });
-      }
-
-      xmlFragment.push([yNode]);
-    });
   }
 }

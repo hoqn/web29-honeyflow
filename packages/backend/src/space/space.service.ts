@@ -15,7 +15,7 @@ export class SpaceService {
     private readonly snowflakeService: SnowflakeService,
   ) {}
 
-  async create(userId: string, spaceName: string) {
+  async createSpace(userId: string, spaceName: string) {
     const Edges: SpaceData['edges'] = {};
     const Nodes: SpaceData['nodes'] = {};
 
@@ -55,6 +55,34 @@ export class SpaceService {
     return result;
   }
 
+  async createSubSpace(
+    userId: string,
+    subSpaceName: string,
+    parentContextNodeId: string,
+  ) {
+    const Edges: SpaceData['edges'] = {};
+    const Nodes: SpaceData['nodes'] = {};
+    const headNode: Node = {
+      id: generateUuid(),
+      x: 0,
+      y: 0,
+      type: 'head',
+      name: subSpaceName,
+    };
+    Nodes[headNode.id] = headNode;
+
+    const spaceDto = {
+      id: this.snowflakeService.generateId(),
+      parentContextNodeId: parentContextNodeId,
+      userId: userId,
+      urlPath: generateUuid(),
+      name: subSpaceName,
+      edges: JSON.stringify(Edges),
+      nodes: JSON.stringify(Nodes),
+    };
+    const subSpace = await this.spaceRepository.save(spaceDto);
+    return [subSpace.urlPath];
+  }
   async updateByEdges(id: string, edges: string) {
     const space = await this.findById(id);
     if (!space) {
