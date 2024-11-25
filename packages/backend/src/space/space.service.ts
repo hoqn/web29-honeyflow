@@ -49,8 +49,6 @@ export class SpaceService {
       parentContextNodeId,
     );
 
-    console.log(parentContextNodeId);
-
     const spaceDto = {
       id: this.snowflakeService.generateId(),
       parentSpaceId:
