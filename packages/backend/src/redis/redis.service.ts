@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 export class RedisService {
   private logger = new Logger(RedisService.name);
   private redis: Redis;
+
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private configService: ConfigService,
@@ -18,7 +19,25 @@ export class RedisService {
       password: this.configService.get<string>('REDIS_PASSWORD'),
     });
   }
-  async set() {}
 
-  async get() {}
+  async set(key: string, value: string, ttl: number = 3600): Promise<void> {
+    try {
+      await this.redis.set(key, value, 'EX', ttl);
+      this.logger.log(`Set key: ${key} with value: ${value} and TTL: ${ttl}`);
+    } catch (error) {
+      this.logger.error(`Error setting key: ${key}`, error);
+      throw error;
+    }
+  }
+
+  async get(key: string): Promise<string | null> {
+    try {
+      const value = await this.redis.get(key);
+      this.logger.log(`Get key: ${key}, value: ${value}`);
+      return value;
+    } catch (error) {
+      this.logger.error(`Error getting key: ${key}`, error);
+      throw error;
+    }
+  }
 }
