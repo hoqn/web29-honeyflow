@@ -1,18 +1,24 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Space } from './space.entity';
-import { MAX_SPACES } from 'src/common/constants/space.constants';
 import { ERROR_MESSAGES } from 'src/common/constants/error.message.constants';
 import { SnowflakeService } from 'src/common/utils/snowflake.service';
 import { v4 as uuid } from 'uuid';
 import { SpaceData, Node, Edge } from 'shared/types';
+import { SpaceValidationService } from './space.validation.service';
+
 @Injectable()
 export class SpaceService {
   constructor(
     @InjectRepository(Space)
     private readonly spaceRepository: Repository<Space>,
     private readonly snowflakeService: SnowflakeService,
+    private readonly spaceValidationService: SpaceValidationService,
   ) {}
 
   async findById(urlPath: string) {
@@ -22,7 +28,11 @@ export class SpaceService {
     return result;
   }
 
-  async create(userId: string, spaceName: string, parentContextNodeId: string) {
+  async create(
+    userId: string,
+    spaceName: string,
+    parentContextNodeId: string | null,
+  ) {
     const Edges: SpaceData['edges'] = {};
     const Nodes: SpaceData['nodes'] = {};
     const headNode: Node = {
@@ -33,6 +43,11 @@ export class SpaceService {
       name: spaceName,
     };
     Nodes[headNode.id] = headNode;
+
+    await this.spaceValidationService.validateSpaceLimit(userId);
+    await this.spaceValidationService.validateParentNodeExists(
+      parentContextNodeId,
+    );
 
     const spaceDto = {
       id: this.snowflakeService.generateId(),

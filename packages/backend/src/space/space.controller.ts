@@ -26,7 +26,7 @@ export class SpaceController {
   @ApiResponse({ status: 400, description: '잘못된 요청' })
   async createSubSpace(@Body() createSpaceDto: CreateSpaceDto) {
     const { userId, spaceName, parentContextNodeId } = createSpaceDto;
-    if (userId !== GUEST_USER_ID || !spaceName || !parentContextNodeId) {
+    if (userId !== GUEST_USER_ID || !spaceName) {
       throw new HttpException(
         ERROR_MESSAGES.SPACE.BAD_REQUEST,
         HttpStatus.BAD_REQUEST,
