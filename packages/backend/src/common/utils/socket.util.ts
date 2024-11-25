@@ -14,9 +14,8 @@ export function parseSocketUrl(url: string): {
 
     if (parts.length >= 2) {
       return { urlType: parts[1], urlId: parts[2] };
-    } else {
-      return { urlType: null, urlId: null };
     }
+    return { urlType: null, urlId: null };
   } catch (error) {
     return { urlType: null, urlId: null };
   }
