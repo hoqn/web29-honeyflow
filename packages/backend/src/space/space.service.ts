@@ -49,9 +49,12 @@ export class SpaceService {
       parentContextNodeId,
     );
 
+    console.log(parentContextNodeId);
+
     const spaceDto = {
       id: this.snowflakeService.generateId(),
-      parentContextNodeId: parentContextNodeId,
+      parentSpaceId:
+        parentContextNodeId === null ? undefined : parentContextNodeId,
       userId: userId,
       urlPath: uuid(),
       name: spaceName,
