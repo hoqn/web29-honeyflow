@@ -10,13 +10,16 @@ import { SpaceService } from 'src/space/space.service';
 import { NoteService } from 'src/note/note.service';
 import { parseSocketUrl } from 'src/common/utils/socket.util';
 import { WebsocketStatus } from 'src/common/constants/websocket.constants';
-import { Server } from 'ws';
+import { Server, WebSocket } from 'ws';
 import { Request } from 'express';
-import { setupWSConnection } from 'y-websocket/bin/utils';
+import {
+  setupWSConnection,
+  setPersistence,
+  setContentInitializor,
+} from 'y-websocket/bin/utils';
 import * as Y from 'yjs';
 import { ERROR_MESSAGES } from 'src/common/constants/error.message.constants';
 const SPACE = 'space';
-const NOTE = 'note';
 
 @WebSocketGateway(9001)
 export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -31,10 +34,12 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   async handleConnection(connection: WebSocket, request: Request) {
     this.logger.log('connection start');
-
     try {
       const url = request.url || '';
       const { urlType, urlId } = parseSocketUrl(url);
+      this.logger.log(`url ${request.url}`);
+      this.logger.log(`Parsed URL - Type: ${urlType}, ID: ${urlId}`);
+      this.logger.log(`Parsed URL - Type: ${urlType}, ID: ${urlId}`);
       if (!this.validateUrl(urlType, urlId)) {
         connection.close(
           WebsocketStatus.POLICY_VIOLATION,
@@ -42,7 +47,6 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
         );
         return;
       }
-      this.logger.log(`Parsed URL - Type: ${urlType}, ID: ${urlId}`);
       urlType === SPACE
         ? await this.initializeSpace(connection, request, urlId as string)
         : await this.initializeNote(connection, request, urlId as string);
@@ -51,7 +55,7 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  handleDisconnect() {
+  handleDisconnect(connection: WebSocket) {
     this.logger.log(`connection end`);
   }
 
@@ -67,17 +71,85 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     request: Request,
     urlId: string,
   ) {
-    const space = await this.spaceService.findById(urlId);
-    if (!space) {
-      connection.close(
-        WebsocketStatus.POLICY_VIOLATION,
-        ERROR_MESSAGES.SPACE.NOT_FOUND,
-      );
-      return;
-    }
-    setupWSConnection(connection, request, {
-      docName: space.name,
+    setPersistence({
+      provider: '',
+      bindState: (docName: string, ydoc: Y.Doc) => {
+        try {
+          const yContext = ydoc.getMap('context');
+          this.logger.log(
+            `space bindState: docName: ${docName} urlId: ${urlId} ydoc:${JSON.stringify(yContext)}`,
+          );
+        } catch (e) {
+          this.logger.error(`writeState`);
+        }
+      },
+      writeState: (docName: string, ydoc: Y.Doc) => {
+        try {
+          const yContext = ydoc.getMap('context');
+          const yEdges = yContext.get('edges');
+          const yNodes = yContext.get('nodes');
+
+          this.logger.log(
+            `space writeState: docName: ${docName} urlId: ${urlId} ydoc:${JSON.stringify(yContext)}`,
+          );
+          this.spaceService.updateByEdges(
+            urlId,
+            JSON.parse(JSON.stringify(yEdges)),
+          );
+          this.spaceService.updateByNodes(
+            urlId,
+            JSON.parse(JSON.stringify(yNodes)),
+          );
+        } catch (e) {
+          this.logger.error(`writeState`);
+        }
+
+        return Promise.resolve();
+      },
     });
+
+    setContentInitializor(async (ydoc) => {
+      const space = await this.spaceService.findById(urlId);
+      if (!space) {
+        connection.close(
+          WebsocketStatus.POLICY_VIOLATION,
+          ERROR_MESSAGES.SPACE.NOT_FOUND,
+        );
+        return;
+      }
+
+      const parsedSpace = {
+        ...space,
+        edges: JSON.parse(space.edges),
+        nodes: JSON.parse(space.nodes),
+      };
+      this.setYSpace(ydoc, parsedSpace);
+      return Promise.resolve();
+    });
+
+    setupWSConnection(connection, request, {
+      docName: urlId,
+    });
+  }
+
+  private async setYSpace(ydoc: Y.Doc, parsedSpace) {
+    const yContext = ydoc.getMap('context');
+
+    const yEdges = new Y.Map();
+    const yNodes = new Y.Map();
+
+    const edges = parsedSpace.edges;
+    const nodes = parsedSpace.nodes;
+
+    Object.entries(edges).forEach(([edgeId, edge]) => {
+      yEdges.set(edgeId, edge);
+    });
+    Object.entries(nodes).forEach(([nodeId, node]) => {
+      yNodes.set(nodeId, node);
+    });
+
+    yContext.set('edges', yEdges);
+    yContext.set('nodes', yNodes);
   }
 
   private async initializeNote(
@@ -85,6 +157,7 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     request: Request,
     urlId: string,
   ) {
+    this.logger.log(`initializeNote `);
     const note = await this.noteService.findById(urlId);
     if (!note) {
       connection.close(
@@ -93,8 +166,23 @@ export class YjsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       );
       return;
     }
-    setupWSConnection(connection, request, {
-      docName: note.name,
+
+    setPersistence({
+      provider: '',
+      bindState: async (docName: string, ydoc: Y.Doc) => {
+        if (note.content) {
+          const updates = new Uint8Array(Buffer.from(note.content, 'base64'));
+          Y.applyUpdate(ydoc, updates);
+        }
+      },
+      writeState: async (docName: string, ydoc: Y.Doc) => {
+        const updates = Y.encodeStateAsUpdate(ydoc);
+        const encodedUpdates = Buffer.from(updates).toString('base64');
+        await this.noteService.updateContent(urlId, encodedUpdates);
+      },
     });
+
+    setupWSConnection(connection, request);
+    this.logger.log(`connection complete`);
   }
 }
