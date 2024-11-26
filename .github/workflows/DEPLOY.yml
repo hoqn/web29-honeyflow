@@ -41,6 +41,7 @@ jobs:
             # 이전 컨테이너 정리
             sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml down || true
 
+
             # 새 컨테이너 실행
             sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
             sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
