@@ -1,5 +1,5 @@
 services:
-  backend-green:
+  backend:
     extends:
       file: docker-compose.yml
       service: backend
@@ -25,12 +25,12 @@ services:
       - app-network
       - proxy-network
 
-  frontend-green:
+  frontend:
     extends:
       file: docker-compose.yml
       service: frontend
     environment:
-      - BACKEND_URL=http://backend-green:3000
+      - BACKEND_URL=http://backend:3000
     networks:
       - app-network
       - proxy-network
