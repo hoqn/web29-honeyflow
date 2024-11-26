@@ -14,6 +14,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ElasticsearchModule } from '@nestjs/elasticsearch';
 import { LoggerModule } from './common/logger/logger.module';
 import { Space, SpaceSchema } from './schema/space.schema';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -30,6 +31,7 @@ import { Space, SpaceSchema } from './schema/space.schema';
         },
       }),
     }),
+
     CacheModule.register({
       store: redisStore,
       host: process.env.REDIS_HOST,

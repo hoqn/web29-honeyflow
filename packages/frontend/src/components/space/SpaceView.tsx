@@ -12,11 +12,16 @@ import useYjsSpace from "@/hooks/useYjsSpace";
 import { useZoomSpace } from "@/hooks/useZoomSpace.ts";
 
 import GooeyNode from "./GooeyNode";
+import NearNodeIndicator from "./NearNodeIndicator";
 import PaletteMenu from "./PaletteMenu";
 
 interface SpaceViewProps {
   autofitTo?: Element | React.RefObject<Element>;
 }
+
+const dragBoundFunc = function (this: Konva.Node) {
+  return this.absolutePosition();
+};
 
 export default function SpaceView({ autofitTo }: SpaceViewProps) {
   const [stageSize, setStageSize] = useState({ width: 0, height: 0 });
@@ -25,22 +30,14 @@ export default function SpaceView({ autofitTo }: SpaceViewProps) {
 
   const { nodes, edges, defineNode } = useYjsSpace();
 
-  const { drag, dropPosition, handlePaletteSelect } = useDragNode({
+  const nodesArray = nodes ? Object.values(nodes) : [];
+
+  const { drag, dropPosition, handlePaletteSelect } = useDragNode(nodesArray, {
     createNode: (type, parentNode, position, name = "New Note") => {
       defineNode({ type, x: position.x, y: position.y, name }, parentNode.id);
     },
   });
   const { startNode, handlers } = drag;
-
-  function createDragBoundFunc(node: Node) {
-    return function dragBoundFunc() {
-      /** 원래 위치로 고정. stage도 draggable하므로 Layer에 적용된 offset을 보정하여 절대 위치로 표시.  */
-      return {
-        x: node.x + stageSize.width / 2,
-        y: node.y + stageSize.height / 2,
-      };
-    };
-  }
 
   useEffect(() => {
     if (!autofitTo) {
@@ -79,7 +76,7 @@ export default function SpaceView({ autofitTo }: SpaceViewProps) {
         onDragStart={() => handlers.onDragStart(node)}
         onDragMove={handlers.onDragMove}
         onDragEnd={handlers.onDragEnd}
-        dragBoundFunc={createDragBoundFunc(node)}
+        dragBoundFunc={dragBoundFunc}
       />
     ),
     note: (node: Node) => (
@@ -92,7 +89,7 @@ export default function SpaceView({ autofitTo }: SpaceViewProps) {
         onDragStart={() => handlers.onDragStart(node)}
         onDragMove={handlers.onDragMove}
         onDragEnd={handlers.onDragEnd}
-        dragBoundFunc={createDragBoundFunc(node)}
+        dragBoundFunc={dragBoundFunc}
       />
     ),
   };
@@ -111,6 +108,9 @@ export default function SpaceView({ autofitTo }: SpaceViewProps) {
             startPosition={{ x: startNode.x, y: startNode.y }}
             dragPosition={drag.position}
           />
+        )}
+        {drag.position && drag.overlapNode && (
+          <NearNodeIndicator overlapNode={drag.overlapNode} />
         )}
         {nodes &&
           Object.entries(nodes).map(([, node]) => {
