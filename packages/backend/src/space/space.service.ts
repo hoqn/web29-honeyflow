@@ -12,7 +12,6 @@ import { v4 as uuid } from 'uuid';
 import { SpaceData, Node, Edge } from 'shared/types';
 import { SpaceValidationService } from './space.validation.service';
 
-
 @Injectable()
 export class SpaceService {
   constructor(
@@ -51,7 +50,7 @@ export class SpaceService {
       parentContextNodeId,
     );
 
-eDto = {
+    const spaceDto = {
       id: this.snowflakeService.generateId(),
       parentSpaceId:
         parentContextNodeId === null ? undefined : parentContextNodeId,
