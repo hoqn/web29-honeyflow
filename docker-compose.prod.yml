@@ -1,8 +1,7 @@
 services:
   backend:
-    extends:
-      file: docker-compose.yml
-      service: backend
+    build:
+      target: production
     environment:
       - NODE_ENV=production
       - MYSQL_HOST=${MYSQL_HOST}
@@ -22,20 +21,17 @@ services:
       - MONGO_DB=${MONGO_DB}
       - LOG_LEVEL=${LOG_LEVEL}
     networks:
-      - app-network
       - proxy-network
 
   frontend:
-    extends:
-      file: docker-compose.yml
-      service: frontend
     environment:
+      - NODE_ENV=production
       - BACKEND_URL=http://backend:3000
     networks:
-      - app-network
       - proxy-network
     extra_hosts:
       - "db-host:${DATABASE_HOST}"
+
 networks:
   proxy-network:
     external: true
