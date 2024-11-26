@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { useParams } from "react-router-dom";
 
+import SpacePageHeader from "@/components/space/SpacePageHeader";
 import YjsSpaceView from "@/components/space/YjsSpaceView";
 
 interface SpacePageParams extends Record<string, string | undefined> {
@@ -18,11 +19,12 @@ export default function SpacePage() {
 
   return (
     <div
-      className="text-sm"
+      className=""
       style={{ width: "100%", height: "100%" }}
       ref={containerRef}
     >
       <YjsSpaceView spaceId={entrySpaceId} autofitTo={containerRef} />
+      <SpacePageHeader />
     </div>
   );
 }
