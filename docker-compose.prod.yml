@@ -1,5 +1,6 @@
 services:
   backend:
+    container_name: backend
     build:
       target: production
     environment:
@@ -22,6 +23,7 @@ services:
       - LOG_LEVEL=${LOG_LEVEL}
 
   frontend:
+    container_name: frontend
     environment:
       - NODE_ENV=production
       - BACKEND_URL=http://backend:3000
