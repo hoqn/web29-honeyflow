@@ -142,8 +142,47 @@ services:
       - "5601:5601"
     networks:
       - app-network
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.12.0
+    container_name: filebeat
+    user: root
+    volumes:
+      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - filebeat_data:/usr/share/filebeat/data
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - KIBANA_HOST=http://kibana:5601
+    networks:
+      - app-network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+  metricbeat:
+    image: docker.elastic.co/beats/metricbeat:8.12.0
+    container_name: metricbeat
+    user: root
+    volumes:
+      - ./metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
+      - /proc:/hostfs/proc:ro
+      - /:/hostfs:ro
+      - metricbeat_data:/usr/share/metricbeat/data
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - KIBANA_HOST=http://kibana:5601
+    networks:
+      - app-network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
 
 volumes:
+  filebeat_data:
+  metricbeat_data:
   mysql_data:
   mongo_data:
   elasticsearch_data:
