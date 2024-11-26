@@ -158,14 +158,15 @@ export default function useYjsSpace() {
         });
       }
 
-    return {
-      nodes: MOCK_DATA.nodes,
-      edges: MOCK_DATA.edges,
-      defineNode,
-      defineEdge,
-      updateNode,
-      deleteNode,
-    };
+      return {
+        nodes: MOCK_DATA.nodes,
+        edges: MOCK_DATA.edges,
+        defineNode,
+        defineEdge,
+        updateNode,
+        deleteNode,
+      };
+    }
   }
   return { nodes, edges, updateNode, defineNode, defineEdge, deleteNode };
 }
