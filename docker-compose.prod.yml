@@ -20,18 +20,10 @@ services:
       - MONGO_PASSWORD=${MONGO_PASSWORD}
       - MONGO_DB=${MONGO_DB}
       - LOG_LEVEL=${LOG_LEVEL}
-    networks:
-      - proxy-network
 
   frontend:
     environment:
       - NODE_ENV=production
       - BACKEND_URL=http://backend:3000
-    networks:
-      - proxy-network
     extra_hosts:
       - "db-host:${DATABASE_HOST}"
-
-networks:
-  proxy-network:
-    external: true
