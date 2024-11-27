@@ -8,14 +8,14 @@ export default function SpacePageHeader() {
         <div className="flex-1">
           <SpaceBreadcrumb
             spacePaths={[
-              // { name: "하나", urlPath: "1" },
-              // { name: "셋", urlPath: "3" },
-              // { name: "넷", urlPath: "4" },
-              // { name: "다섯", urlPath: "5" },
-              // { name: "여섯", urlPath: "6" },
-              // { name: "일곱", urlPath: "7" },
-              // { name: "여덟", urlPath: "8" },
-              // { name: "아홉", urlPath: "9" },
+              { name: "하나", urlPath: "1" },
+              { name: "셋", urlPath: "3" },
+              { name: "넷", urlPath: "4" },
+              { name: "다섯", urlPath: "5" },
+              { name: "여섯", urlPath: "6" },
+              { name: "일곱", urlPath: "7" },
+              { name: "여덟", urlPath: "8" },
+              { name: "아홉", urlPath: "9" },
               {
                 name: "엄청 긴 제목을 가진 스페이스다아아아아아아아아아아아아아",
                 urlPath: "2",
