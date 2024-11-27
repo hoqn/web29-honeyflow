@@ -59,8 +59,9 @@ services:
 
   frontend:
     container_name: frontend
-    backend:
-      condition: service_started
+    depends_on:
+      backend:
+        condition: service_started
     ports:
       - "80:80"
     environment:
