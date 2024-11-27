@@ -12,7 +12,6 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ElasticsearchModule } from '@nestjs/elasticsearch';
 import { LoggerModule } from './common/logger/logger.module';
 import { Space, SpaceSchema } from './schema/space.schema';
-
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -69,7 +68,7 @@ import { Space, SpaceSchema } from './schema/space.schema';
     LoggerModule,
     MongooseModule.forFeature([{ name: Space.name, schema: SpaceSchema }]),
   ],
-  controllers: [AppController],
+  controllers: [AppController, HealthController],
   providers: [AppService],
 })
 export class AppModule {}
