@@ -59,7 +59,6 @@ services:
 
   frontend:
     container_name: frontend
-    depends_on:
     backend:
       condition: service_started
     ports:
