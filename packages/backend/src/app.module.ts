@@ -68,7 +68,7 @@ import { Space, SpaceSchema } from './schema/space.schema';
     LoggerModule,
     MongooseModule.forFeature([{ name: Space.name, schema: SpaceSchema }]),
   ],
-  controllers: [AppController, HealthController],
+  controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}
